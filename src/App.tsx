@@ -7,6 +7,7 @@ export interface Category {
   category: string;
   "self-partner"?: boolean;
   "giving-receiving"?: boolean;
+  "actor-subject"?: boolean;
   items: ItemData[];
 }
 
@@ -28,14 +29,24 @@ const ratingOptions = [
 
 type AnswerLevel = (typeof ratingOptions)[number]["value"];
 
-type Role = "self" | "partner" | "giving" | "receiving";
+type Role =
+  | "self"
+  | "partner"
+  | "giving"
+  | "receiving"
+  | "actor"
+  | "subject";
 
 type ItemAnswers = Record<Role, AnswerLevel | null>;
 
 function getRoles(
   selfPartner = false,
   givingReceiving = false,
+  actorSubject = false,
 ): Role[] {
+  if (actorSubject) {
+    return ["actor", "subject"];
+  }
   if (givingReceiving) {
     return ["giving", "receiving"];
   }
@@ -47,12 +58,13 @@ const items = categories.flatMap(
     category,
     "self-partner": selfPartner = false,
     "giving-receiving": givingReceiving = false,
+    "actor-subject": actorSubject = false,
     items: categoryItems,
   }) =>
     categoryItems.map((item) => ({
       ...item,
       category,
-      roles: getRoles(selfPartner, givingReceiving),
+      roles: getRoles(selfPartner, givingReceiving, actorSubject),
     })),
 );
 
@@ -68,6 +80,8 @@ function App() {
       partner: null,
       giving: null,
       receiving: null,
+      actor: null,
+      subject: null,
     })),
   );
   const [exportMessage, setExportMessage] = useState("");
