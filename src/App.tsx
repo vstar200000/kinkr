@@ -6,6 +6,7 @@ import itemsData from "./data/items.json";
 export interface Category {
   category: string;
   "self-partner"?: boolean;
+  "giving-receiving"?: boolean;
   items: ItemData[];
 }
 
@@ -27,18 +28,33 @@ const ratingOptions = [
 
 type AnswerLevel = (typeof ratingOptions)[number]["value"];
 
-type Role = "self" | "partner";
+type Role = "self" | "partner" | "giving" | "receiving";
 
 type ItemAnswers = Record<Role, AnswerLevel | null>;
 
-const items = categories.flatMap(
-  ({ category, "self-partner": selfPartner = false, items: categoryItems }) =>
-    categoryItems.map((item) => ({ ...item, category, selfPartner })),
-);
-
-function getRoles(selfPartner: boolean): Role[] {
+function getRoles(
+  selfPartner = false,
+  givingReceiving = false,
+): Role[] {
+  if (givingReceiving) {
+    return ["giving", "receiving"];
+  }
   return selfPartner ? ["self", "partner"] : ["self"];
 }
+
+const items = categories.flatMap(
+  ({
+    category,
+    "self-partner": selfPartner = false,
+    "giving-receiving": givingReceiving = false,
+    items: categoryItems,
+  }) =>
+    categoryItems.map((item) => ({
+      ...item,
+      category,
+      roles: getRoles(selfPartner, givingReceiving),
+    })),
+);
 
 function getLabel(answer: AnswerLevel | null) {
   return ratingOptions.find((option) => option.value === answer)?.label ?? null;
@@ -47,15 +63,20 @@ function getLabel(answer: AnswerLevel | null) {
 function App() {
   const [activeItemIndex, setActiveItemIndex] = useState(0);
   const [answers, setAnswers] = useState<ItemAnswers[]>(() =>
-    items.map(() => ({ self: null, partner: null })),
+    items.map(() => ({
+      self: null,
+      partner: null,
+      giving: null,
+      receiving: null,
+    })),
   );
   const [exportMessage, setExportMessage] = useState("");
 
   const activeItem = items[activeItemIndex];
-  const activeRoles = activeItem ? getRoles(activeItem.selfPartner) : [];
+  const activeRoles = activeItem?.roles ?? [];
   const activeAnswers = answers[activeItemIndex];
   const ratedCount = answers.filter((itemAnswers, index) =>
-    getRoles(items[index].selfPartner).every(
+    items[index].roles.every(
       (role) => itemAnswers[role] !== null,
     ),
   ).length;
@@ -89,17 +110,20 @@ function App() {
           ...categoryDetails,
           items: categoryItems.map((item) => {
             const itemAnswers = answers[itemIndex];
-            const selfPartner = items[itemIndex].selfPartner;
+            const itemRoles = items[itemIndex].roles;
             itemIndex += 1;
 
             return {
               ...item,
-              rating: selfPartner
-                ? {
-                    self: getLabel(itemAnswers.self),
-                    partner: getLabel(itemAnswers.partner),
-                  }
-                : getLabel(itemAnswers.self),
+              rating:
+                itemRoles.length > 1
+                  ? Object.fromEntries(
+                      itemRoles.map((role) => [
+                        role,
+                        getLabel(itemAnswers[role]),
+                      ]),
+                    )
+                  : getLabel(itemAnswers.self),
             };
           }),
         }),
@@ -173,14 +197,12 @@ function App() {
                     <div className="rating-area mt-4">
                       {activeRoles.map((role) => (
                         <div
-                          aria-label={
-                            activeItem.selfPartner ? role : undefined
-                          }
+                          aria-label={activeRoles.length > 1 ? role : undefined}
                           className="rating-group"
                           key={role}
-                          role={activeItem.selfPartner ? "group" : undefined}
+                          role={activeRoles.length > 1 ? "group" : undefined}
                         >
-                          {activeItem.selfPartner && (
+                          {activeRoles.length > 1 && (
                             <p className="rating-group-label">{role}</p>
                           )}
                           <div className="rating-options">
