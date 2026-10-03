@@ -75,10 +75,15 @@
   background: #fff;
   border: 1px solid #eceaf0;
   border-radius: 1.25rem;
+  flex: 1 1 auto;
   overflow: hidden;
 }
 
 .item-card .card-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
   padding: 1.5rem;
 }
 
