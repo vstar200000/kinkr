@@ -110,92 +110,101 @@ function App() {
 
       <section
         aria-label="Item ratings"
-        className="container rating-workspace pb-5"
+        className="rating-workspace pb-5"
+        style={
+          activeItem?.image
+            ? {
+                backgroundImage: `linear-gradient(rgb(251 250 252 / 78%), rgb(251 250 252 / 88%)), url(${JSON.stringify(activeItem.image)})`,
+              }
+            : undefined
+        }
       >
-        <div className="row justify-content-center">
-          <div className="col-12 col-lg-9 col-xl-8">
-            {activeItem ? (
-              <>
-                <div className="d-flex justify-content-between align-items-end mb-3">
-                  <div>
-                    <p className="eyebrow mb-1">{activeItem.category}</p>
-                  </div>
-                  {ratedCount === items.length && (
-                    <span className="complete-badge">All rated</span>
-                  )}
-                </div>
+        <div className="container">
+          <div className="row justify-content-center">
+            <div className="col-12 col-lg-9 col-xl-8">
+                {activeItem ? (
+                  <>
+                    <div className="d-flex justify-content-between align-items-end mb-3">
+                      <div>
+                        <p className="eyebrow mb-1">{activeItem.category}</p>
+                      </div>
+                      {ratedCount === items.length && (
+                        <span className="complete-badge">All rated</span>
+                      )}
+                    </div>
 
-                <Item
-                  key={activeItemIndex}
-                  category={activeItem.category}
-                  description={activeItem.description}
-                  image={activeItem.image}
-                  name={activeItem.name}
-                />
+                    <Item
+                      key={activeItemIndex}
+                      category={activeItem.category}
+                      description={activeItem.description}
+                      name={activeItem.name}
+                    />
 
-                <div className="rating-area mt-4">
-                  <div className="rating-options">
-                    {ratingOptions.map((option) => (
+                    <div className="rating-area mt-4">
+                      <div className="rating-options">
+                        {ratingOptions.map((option) => (
+                          <button
+                            aria-pressed={activeAnswer === option.value}
+                            className={`btn rating-choice${activeAnswer === option.value ? " is-selected" : ""}`}
+                            key={option.value}
+                            onClick={() => handleAnswerClick(option.value)}
+                            type="button"
+                          >
+                            {option.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <nav
+                      aria-label="Item navigation"
+                      className="d-flex justify-content-between mt-4"
+                    >
                       <button
-                        aria-pressed={activeAnswer === option.value}
-                        className={`btn rating-choice${activeAnswer === option.value ? " is-selected" : ""}`}
-                        key={option.value}
-                        onClick={() => handleAnswerClick(option.value)}
+                        className="btn btn-link navigation-button"
+                        disabled={activeItemIndex === 0}
+                        onClick={() =>
+                          setActiveItemIndex((index) => Math.max(index - 1, 0))
+                        }
                         type="button"
                       >
-                        {option.label}
+                        Previous
                       </button>
-                    ))}
+                      <button
+                        className="btn btn-link navigation-button"
+                        disabled={activeItemIndex === items.length - 1}
+                        onClick={() =>
+                          setActiveItemIndex((index) =>
+                            Math.min(index + 1, items.length - 1),
+                          )
+                        }
+                        type="button"
+                      >
+                        {activeAnswer === null ? "Skip for now" : "Next item"}
+                      </button>
+                    </nav>
+                  </>
+                ) : (
+                  <div className="empty-state text-center p-5">
+                    <h2 className="h4">There are no items yet.</h2>
+                    <p className="text-secondary mb-0">
+                      Add items to <code>src/data/items.json</code> to get
+                      started.
+                    </p>
                   </div>
-                </div>
+                )}
 
-                <nav
-                  aria-label="Item navigation"
-                  className="d-flex justify-content-between mt-4"
+                <p
+                  aria-live="polite"
+                  className="export-message text-center mt-3 mb-0"
                 >
-                  <button
-                    className="btn btn-link navigation-button"
-                    disabled={activeItemIndex === 0}
-                    onClick={() =>
-                      setActiveItemIndex((index) => Math.max(index - 1, 0))
-                    }
-                    type="button"
-                  >
-                    Previous
-                  </button>
-                  <button
-                    className="btn btn-link navigation-button"
-                    disabled={activeItemIndex === items.length - 1}
-                    onClick={() =>
-                      setActiveItemIndex((index) =>
-                        Math.min(index + 1, items.length - 1),
-                      )
-                    }
-                    type="button"
-                  >
-                    {activeAnswer === null ? "Skip for now" : "Next item"}
-                  </button>
-                </nav>
-              </>
-            ) : (
-              <div className="empty-state text-center p-5">
-                <h2 className="h4">There are no items yet.</h2>
-                <p className="text-secondary mb-0">
-                  Add items to <code>src/data/items.json</code> to get started.
+                  {exportMessage}
+                </p>
+                <p className="privacy-note text-center mt-3 mb-0">
+                  Your ratings stay in this browser session. Export a copy before
+                  leaving.
                 </p>
               </div>
-            )}
-
-            <p
-              aria-live="polite"
-              className="export-message text-center mt-3 mb-0"
-            >
-              {exportMessage}
-            </p>
-            <p className="privacy-note text-center mt-3 mb-0">
-              Your ratings stay in this browser session. Export a copy before
-              leaving.
-            </p>
           </div>
         </div>
       </section>
