@@ -2,17 +2,6 @@ import { useState } from "react";
 import "./App.css";
 import Item from "./components/item.tsx";
 import itemsData from "./data/items.json";
-const categories: Category[] = itemsData;
-
-const AnswerLevel = {
-  Never: 0,
-  Ask_Me: 1,
-  Willing: 2,
-  Love: 3,
-  Crave: 4,
-} as const;
-
-type AnswerLevel = (typeof AnswerLevel)[keyof typeof AnswerLevel];
 
 export interface Category {
   category: string;
@@ -23,77 +12,235 @@ export interface ItemData {
   name: string;
   description?: string;
   image?: string;
-  answerLevel?: AnswerLevel;
 }
 
+const categories: Category[] = itemsData;
+
+const ratingOptions = [
+  { value: 0, label: "Never", className: "rating-never" },
+  { value: 1, label: "Ask Me", className: "rating-ask" },
+  { value: 2, label: "Willing", className: "rating-willing" },
+  { value: 3, label: "Love", className: "rating-love" },
+  { value: 4, label: "Crave", className: "rating-crave" },
+] as const;
+
+type AnswerLevel = (typeof ratingOptions)[number]["value"];
+
+const items = categories.flatMap(({ category, items: categoryItems }) =>
+  categoryItems.map((item) => ({ ...item, category })),
+);
+
 function App() {
-  const [categoryIndex, setCategoryIndex] = useState(0);
   const [activeItemIndex, setActiveItemIndex] = useState(0);
-  const [answers, setAnswers] = useState<AnswerLevel[][]>([]);
-
-  function handleAnswerClick(answerLevel: AnswerLevel) {
-    // append the answer to the nested answers array. Use the categoryIndex and activeItemIndex for indicies. If the categoryIndex or activeItemIndex is out of bounds, create a new array for that index.
-    setAnswers((prevAnswers) => {
-      const newAnswers = [...prevAnswers];
-      if (!newAnswers[categoryIndex]) {
-        newAnswers[categoryIndex] = [];
-      }
-      newAnswers[categoryIndex][activeItemIndex] = answerLevel;
-      return newAnswers;
-    });
-    MoveToNextItem();
-  }
-
-  function MoveToNextItem() {
-    console.log(
-      "Moving to next item" +
-        ` (categoryIndex: ${categoryIndex}, activeItemIndex: ${activeItemIndex})`,
-    );
-    if (activeItemIndex < categories[categoryIndex].items.length - 1) {
-      if (categories.length <= categoryIndex + 1) {
-        setCategoryIndex(0);
-      } else {
-        setCategoryIndex(categoryIndex + 1);
-      }
-      setActiveItemIndex(0);
-    } else {
-      setActiveItemIndex(activeItemIndex + 1);
-    }
-  }
-
-  function GetItemCard() {
-    const item = categories[categoryIndex].items[activeItemIndex];
-    return (
-      <Item
-        title={item.name}
-        description={item.description}
-        image={item.image}
-      />
-    );
-  }
-
-  // The cards should be stacked, so only one is visible at a time. The visible card should be the one at the activeItemIndex.
-  return (
-    <>
-      {GetItemCard()}
-      <button onClick={() => handleAnswerClick(AnswerLevel.Never)}>
-        Never
-      </button>
-      <button onClick={() => handleAnswerClick(AnswerLevel.Ask_Me)}>
-        Ask Me
-      </button>
-      <button onClick={() => handleAnswerClick(AnswerLevel.Willing)}>
-        Willing
-      </button>
-      <button onClick={() => handleAnswerClick(AnswerLevel.Love)}>Love</button>
-      <button onClick={() => handleAnswerClick(AnswerLevel.Crave)}>
-        Crave
-      </button>
-    </>
+  const [answers, setAnswers] = useState<Array<AnswerLevel | null>>(() =>
+    items.map(() => null),
   );
-  // create an item card for each item in every category
-  // buttons for each answer level, when clicked, call handleAnswerClick with the corresponding answer level
-  // buttons should be arranged in a row
+  const [exportMessage, setExportMessage] = useState("");
+
+  const activeItem = items[activeItemIndex];
+  const ratedCount = answers.filter((answer) => answer !== null).length;
+  const activeAnswer = answers[activeItemIndex] ?? null;
+
+  function handleAnswerClick(answer: AnswerLevel) {
+    setAnswers((currentAnswers) =>
+      currentAnswers.map((currentAnswer, index) =>
+        index === activeItemIndex ? answer : currentAnswer,
+      ),
+    );
+    setExportMessage("");
+    setActiveItemIndex((currentIndex) =>
+      Math.min(currentIndex + 1, items.length - 1),
+    );
+  }
+
+  function exportResults() {
+    let itemIndex = 0;
+    const exportData = {
+      formatVersion: 1,
+      exportedAt: new Date().toISOString(),
+      categories: categories.map(({ category, items: categoryItems }) => ({
+        category,
+        items: categoryItems.map((item) => {
+          const answer = answers[itemIndex];
+          itemIndex += 1;
+
+          return {
+            ...item,
+            rating:
+              answer === null || answer === undefined
+                ? null
+                : ratingOptions.find((option) => option.value === answer)
+                    ?.label ?? null,
+          };
+        }),
+      })),
+    };
+    const file = new Blob([JSON.stringify(exportData, null, 2)], {
+      type: "application/json",
+    });
+    const downloadUrl = URL.createObjectURL(file);
+    const downloadLink = document.createElement("a");
+    const date = new Date().toISOString().slice(0, 10);
+
+    downloadLink.href = downloadUrl;
+    downloadLink.download = `kinkr-results-${date}.json`;
+    document.body.append(downloadLink);
+    downloadLink.click();
+    downloadLink.remove();
+    URL.revokeObjectURL(downloadUrl);
+    setExportMessage("Your JSON results have been downloaded.");
+  }
+
+  return (
+    <main className="app-shell">
+      <header className="container py-4 py-md-5">
+        <div className="d-flex flex-wrap align-items-center justify-content-between gap-3">
+          <a className="brand text-decoration-none" href="#top" id="top">
+            kinkr<span className="brand-period">.</span>
+          </a>
+          <button
+            className="btn btn-outline-dark export-button"
+            onClick={exportResults}
+            type="button"
+          >
+            Export JSON
+          </button>
+        </div>
+        <div className="intro-copy">
+          <p className="eyebrow mb-2">YOUR LIST, YOUR CALL</p>
+          <h1 className="display-title mb-2">Get to know what you like.</h1>
+          <p className="intro-description mb-0">
+            Take each item at your own pace. Your ratings stay on this page
+            until you export them.
+          </p>
+        </div>
+      </header>
+
+      <section
+        aria-label="Item ratings"
+        className="container rating-workspace pb-5"
+      >
+        <div className="row justify-content-center">
+          <div className="col-12 col-lg-9 col-xl-8">
+            <div className="progress-panel mb-4">
+              <div className="d-flex justify-content-between align-items-center mb-2">
+                <span className="small fw-semibold text-uppercase progress-label">
+                  Your progress
+                </span>
+                <span className="small text-secondary">
+                  {ratedCount} of {items.length} rated
+                </span>
+              </div>
+              <div
+                aria-label={`${ratedCount} of ${items.length} items rated`}
+                aria-valuemax={items.length}
+                aria-valuemin={0}
+                aria-valuenow={ratedCount}
+                className="progress"
+                role="progressbar"
+              >
+                <div
+                  className="progress-bar"
+                  style={{
+                    width:
+                      items.length === 0
+                        ? "0%"
+                        : `${(ratedCount / items.length) * 100}%`,
+                  }}
+                />
+              </div>
+            </div>
+
+            {activeItem ? (
+              <>
+                <div className="d-flex justify-content-between align-items-end mb-3">
+                  <div>
+                    <p className="eyebrow mb-1">{activeItem.category}</p>
+                    <p className="small text-secondary mb-0">
+                      Item {activeItemIndex + 1} of {items.length}
+                    </p>
+                  </div>
+                  {ratedCount === items.length && (
+                    <span className="complete-badge">All rated</span>
+                  )}
+                </div>
+
+                <Item
+                  key={activeItemIndex}
+                  category={activeItem.category}
+                  description={activeItem.description}
+                  image={activeItem.image}
+                  name={activeItem.name}
+                />
+
+                <div className="rating-area mt-4">
+                  <p className="text-center fw-semibold mb-3">
+                    How do you feel about this?
+                  </p>
+                  <div className="rating-options">
+                    {ratingOptions.map((option) => (
+                      <button
+                        aria-pressed={activeAnswer === option.value}
+                        className={`btn rating-choice ${option.className}${activeAnswer === option.value ? " is-selected" : ""}`}
+                        key={option.value}
+                        onClick={() => handleAnswerClick(option.value)}
+                        type="button"
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <nav
+                  aria-label="Item navigation"
+                  className="d-flex justify-content-between mt-4"
+                >
+                  <button
+                    className="btn btn-link navigation-button"
+                    disabled={activeItemIndex === 0}
+                    onClick={() =>
+                      setActiveItemIndex((index) => Math.max(index - 1, 0))
+                    }
+                    type="button"
+                  >
+                    Previous
+                  </button>
+                  <button
+                    className="btn btn-link navigation-button"
+                    disabled={activeItemIndex === items.length - 1}
+                    onClick={() =>
+                      setActiveItemIndex((index) =>
+                        Math.min(index + 1, items.length - 1),
+                      )
+                    }
+                    type="button"
+                  >
+                    {activeAnswer === null ? "Skip for now" : "Next item"}
+                  </button>
+                </nav>
+              </>
+            ) : (
+              <div className="empty-state text-center p-5">
+                <h2 className="h4">There are no items yet.</h2>
+                <p className="text-secondary mb-0">
+                  Add items to <code>src/data/items.json</code> to get started.
+                </p>
+              </div>
+            )}
+
+            <p aria-live="polite" className="export-message text-center mt-3 mb-0">
+              {exportMessage}
+            </p>
+            <p className="privacy-note text-center mt-3 mb-0">
+              Your ratings stay in this browser session. Export a copy before
+              leaving.
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+  );
 }
 
 export default App;
