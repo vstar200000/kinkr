@@ -81,9 +81,9 @@
 }
 
 .rating-options {
-  display: grid;
+  display: flex;
   gap: 0.65rem;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  flex-wrap: wrap;
 }
 
 .rating-choice {
@@ -91,9 +91,11 @@
   border: 1px solid #e8e4eb;
   border-radius: 0.8rem;
   color: #45414b;
+  flex: 1 1 0;
   font-size: 0.9rem;
   font-weight: 650;
   min-height: 3.15rem;
+  min-width: 0;
   padding: 0.65rem 0.4rem;
   transition:
     background-color 150ms ease,
@@ -196,11 +198,4 @@
     padding: 1.2rem;
   }
 
-  .rating-options {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .rating-choice:last-child {
-    grid-column: 1 / -1;
-  }
 }
