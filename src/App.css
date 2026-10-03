@@ -105,6 +105,19 @@
   max-width: 40rem;
 }
 
+.rating-group + .rating-group {
+  margin-top: 1rem;
+}
+
+.rating-group-label {
+  color: #686572;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  margin: 0 0 0.4rem;
+  text-transform: uppercase;
+}
+
 .rating-options {
   display: flex;
   gap: 0.65rem;

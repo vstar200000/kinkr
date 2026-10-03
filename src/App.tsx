@@ -5,6 +5,7 @@ import itemsData from "./data/items.json";
 
 export interface Category {
   category: string;
+  "self-partner"?: boolean;
   items: ItemData[];
 }
 
@@ -26,31 +27,56 @@ const ratingOptions = [
 
 type AnswerLevel = (typeof ratingOptions)[number]["value"];
 
-const items = categories.flatMap(({ category, items: categoryItems }) =>
-  categoryItems.map((item) => ({ ...item, category })),
+type Role = "self" | "partner";
+
+type ItemAnswers = Record<Role, AnswerLevel | null>;
+
+const items = categories.flatMap(
+  ({ category, "self-partner": selfPartner = false, items: categoryItems }) =>
+    categoryItems.map((item) => ({ ...item, category, selfPartner })),
 );
+
+function getRoles(selfPartner: boolean): Role[] {
+  return selfPartner ? ["self", "partner"] : ["self"];
+}
+
+function getLabel(answer: AnswerLevel | null) {
+  return ratingOptions.find((option) => option.value === answer)?.label ?? null;
+}
 
 function App() {
   const [activeItemIndex, setActiveItemIndex] = useState(0);
-  const [answers, setAnswers] = useState<Array<AnswerLevel | null>>(() =>
-    items.map(() => null),
+  const [answers, setAnswers] = useState<ItemAnswers[]>(() =>
+    items.map(() => ({ self: null, partner: null })),
   );
   const [exportMessage, setExportMessage] = useState("");
 
   const activeItem = items[activeItemIndex];
-  const ratedCount = answers.filter((answer) => answer !== null).length;
-  const activeAnswer = answers[activeItemIndex] ?? null;
+  const activeRoles = activeItem ? getRoles(activeItem.selfPartner) : [];
+  const activeAnswers = answers[activeItemIndex];
+  const ratedCount = answers.filter((itemAnswers, index) =>
+    getRoles(items[index].selfPartner).every(
+      (role) => itemAnswers[role] !== null,
+    ),
+  ).length;
+  const isActiveItemRated = activeRoles.every(
+    (role) => activeAnswers?.[role] !== null,
+  );
 
-  function handleAnswerClick(answer: AnswerLevel) {
+  function handleAnswerClick(role: Role, answer: AnswerLevel) {
+    const updatedAnswers = { ...activeAnswers, [role]: answer };
+
     setAnswers((currentAnswers) =>
       currentAnswers.map((currentAnswer, index) =>
-        index === activeItemIndex ? answer : currentAnswer,
+        index === activeItemIndex ? updatedAnswers : currentAnswer,
       ),
     );
     setExportMessage("");
-    setActiveItemIndex((currentIndex) =>
-      Math.min(currentIndex + 1, items.length - 1),
-    );
+    if (activeRoles.every((activeRole) => updatedAnswers[activeRole] !== null)) {
+      setActiveItemIndex((currentIndex) =>
+        Math.min(currentIndex + 1, items.length - 1),
+      );
+    }
   }
 
   function exportResults() {
@@ -58,22 +84,26 @@ function App() {
     const exportData = {
       formatVersion: 1,
       exportedAt: new Date().toISOString(),
-      categories: categories.map(({ category, items: categoryItems }) => ({
-        category,
-        items: categoryItems.map((item) => {
-          const answer = answers[itemIndex];
-          itemIndex += 1;
+      categories: categories.map(
+        ({ items: categoryItems, ...categoryDetails }) => ({
+          ...categoryDetails,
+          items: categoryItems.map((item) => {
+            const itemAnswers = answers[itemIndex];
+            const selfPartner = items[itemIndex].selfPartner;
+            itemIndex += 1;
 
-          return {
-            ...item,
-            rating:
-              answer === null || answer === undefined
-                ? null
-                : (ratingOptions.find((option) => option.value === answer)
-                    ?.label ?? null),
-          };
+            return {
+              ...item,
+              rating: selfPartner
+                ? {
+                    self: getLabel(itemAnswers.self),
+                    partner: getLabel(itemAnswers.partner),
+                  }
+                : getLabel(itemAnswers.self),
+            };
+          }),
         }),
-      })),
+      ),
     };
     const file = new Blob([JSON.stringify(exportData, null, 2)], {
       type: "application/json",
@@ -141,19 +171,37 @@ function App() {
 
                   <div className="rating-controls mt-auto">
                     <div className="rating-area mt-4">
-                      <div className="rating-options">
-                        {ratingOptions.map((option) => (
-                          <button
-                            aria-pressed={activeAnswer === option.value}
-                            className={`btn rating-choice ${option.className}${activeAnswer === option.value ? " is-selected" : ""}`}
-                            key={option.value}
-                            onClick={() => handleAnswerClick(option.value)}
-                            type="button"
-                          >
-                            {option.label}
-                          </button>
-                        ))}
-                      </div>
+                      {activeRoles.map((role) => (
+                        <div
+                          aria-label={
+                            activeItem.selfPartner ? role : undefined
+                          }
+                          className="rating-group"
+                          key={role}
+                          role={activeItem.selfPartner ? "group" : undefined}
+                        >
+                          {activeItem.selfPartner && (
+                            <p className="rating-group-label">{role}</p>
+                          )}
+                          <div className="rating-options">
+                            {ratingOptions.map((option) => (
+                              <button
+                                aria-pressed={
+                                  activeAnswers[role] === option.value
+                                }
+                                className={`btn rating-choice ${option.className}${activeAnswers[role] === option.value ? " is-selected" : ""}`}
+                                key={option.value}
+                                onClick={() =>
+                                  handleAnswerClick(role, option.value)
+                                }
+                                type="button"
+                              >
+                                {option.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
                     </div>
 
                     <nav
@@ -180,7 +228,7 @@ function App() {
                         }
                         type="button"
                       >
-                        {activeAnswer === null ? "Skip for now" : "Next item"}
+                        {isActiveItemRated ? "Next item" : "Skip for now"}
                       </button>
                     </nav>
 
