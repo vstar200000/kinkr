@@ -140,49 +140,64 @@ function App() {
                       name={activeItem.name}
                     />
 
-                    <div className="rating-area mt-4">
-                      <div className="rating-options">
-                        {ratingOptions.map((option) => (
-                          <button
-                            aria-pressed={activeAnswer === option.value}
-                            className={`btn rating-choice ${option.className}${activeAnswer === option.value ? " is-selected" : ""}`}
-                            key={option.value}
-                            onClick={() => handleAnswerClick(option.value)}
-                            type="button"
-                          >
-                            {option.label}
-                          </button>
-                        ))}
+                    <div className="rating-controls mt-auto">
+                      <div className="rating-area mt-4">
+                        <div className="rating-options">
+                          {ratingOptions.map((option) => (
+                            <button
+                              aria-pressed={activeAnswer === option.value}
+                              className={`btn rating-choice ${option.className}${activeAnswer === option.value ? " is-selected" : ""}`}
+                              key={option.value}
+                              onClick={() => handleAnswerClick(option.value)}
+                              type="button"
+                            >
+                              {option.label}
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                    </div>
 
-                    <nav
-                      aria-label="Item navigation"
-                      className="d-flex justify-content-between mt-4"
-                    >
-                      <button
-                        className="btn btn-link navigation-button"
-                        disabled={activeItemIndex === 0}
-                        onClick={() =>
-                          setActiveItemIndex((index) => Math.max(index - 1, 0))
-                        }
-                        type="button"
+                      <nav
+                        aria-label="Item navigation"
+                        className="d-flex justify-content-between mt-4"
                       >
-                        Previous
-                      </button>
-                      <button
-                        className="btn btn-link navigation-button"
-                        disabled={activeItemIndex === items.length - 1}
-                        onClick={() =>
-                          setActiveItemIndex((index) =>
-                            Math.min(index + 1, items.length - 1),
-                          )
-                        }
-                        type="button"
+                        <button
+                          className="btn btn-link navigation-button"
+                          disabled={activeItemIndex === 0}
+                          onClick={() =>
+                            setActiveItemIndex((index) =>
+                              Math.max(index - 1, 0),
+                            )
+                          }
+                          type="button"
+                        >
+                          Previous
+                        </button>
+                        <button
+                          className="btn btn-link navigation-button"
+                          disabled={activeItemIndex === items.length - 1}
+                          onClick={() =>
+                            setActiveItemIndex((index) =>
+                              Math.min(index + 1, items.length - 1),
+                            )
+                          }
+                          type="button"
+                        >
+                          {activeAnswer === null ? "Skip for now" : "Next item"}
+                        </button>
+                      </nav>
+
+                      <p
+                        aria-live="polite"
+                        className="export-message text-center mt-3 mb-0"
                       >
-                        {activeAnswer === null ? "Skip for now" : "Next item"}
-                      </button>
-                    </nav>
+                        {exportMessage}
+                      </p>
+                      <p className="privacy-note text-center mt-3 mb-0">
+                        Your ratings stay in this browser session. Export a
+                        copy before leaving.
+                      </p>
+                    </div>
                   </>
                 ) : (
                   <div className="empty-state text-center p-5">
@@ -194,16 +209,6 @@ function App() {
                   </div>
                 )}
 
-                <p
-                  aria-live="polite"
-                  className="export-message text-center mt-3 mb-0"
-                >
-                  {exportMessage}
-                </p>
-                <p className="privacy-note text-center mt-3 mb-0">
-                  Your ratings stay in this browser session. Export a copy before
-                  leaving.
-                </p>
               </div>
           </div>
         </div>

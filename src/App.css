@@ -1,4 +1,6 @@
 .app-shell {
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
 }
 
@@ -33,6 +35,9 @@
 }
 
 .rating-workspace {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
   background-color: #f2dce7;
   background-image:
     radial-gradient(ellipse at 75% 15%, rgb(255 255 255 / 55%), transparent 28%),
@@ -40,6 +45,21 @@
   background-position: center;
   background-size: cover;
   padding-top: 2rem;
+}
+
+.rating-workspace > .container {
+  display: flex;
+  flex-direction: column;
+}
+
+.rating-workspace > .container,
+.rating-workspace > .container > .row {
+  flex: 1;
+}
+
+.rating-workspace > .container > .row > [class*="col-"] {
+  display: flex;
+  flex-direction: column;
 }
 
 .complete-badge {
