@@ -24,12 +24,6 @@
   padding: 0.65rem 1.1rem;
 }
 
-.intro-copy {
-  margin: 3.5rem auto 0;
-  max-width: 42rem;
-  text-align: center;
-}
-
 .eyebrow {
   color: var(--bs-danger);
   font-size: 0.75rem;
@@ -38,45 +32,8 @@
   text-transform: uppercase;
 }
 
-.display-title {
-  color: #24212b;
-  font-size: clamp(2.15rem, 6vw, 3.5rem);
-  font-weight: 750;
-  letter-spacing: -0.055em;
-  line-height: 1.08;
-}
-
-.intro-description {
-  color: #686572;
-  font-size: 1.05rem;
-}
-
 .rating-workspace {
   padding-top: 2rem;
-}
-
-.progress-panel {
-  background: #fff;
-  border: 1px solid #eceaf0;
-  border-radius: 1rem;
-  padding: 1rem 1.15rem;
-}
-
-.progress-label {
-  color: #4f4a58;
-  letter-spacing: 0.04em;
-}
-
-.progress {
-  background-color: #f0edf3;
-  border-radius: 999px;
-  height: 0.5rem;
-}
-
-.progress-bar {
-  background: linear-gradient(90deg, #a12c68, #d34c83);
-  border-radius: inherit;
-  transition: width 180ms ease;
 }
 
 .complete-badge {
@@ -225,10 +182,6 @@
 }
 
 @media (max-width: 575.98px) {
-  .intro-copy {
-    margin-top: 2.5rem;
-  }
-
   .item-image,
   .item-image-placeholder {
     height: 12rem;

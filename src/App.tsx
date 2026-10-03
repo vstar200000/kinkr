@@ -17,11 +17,11 @@ export interface ItemData {
 const categories: Category[] = itemsData;
 
 const ratingOptions = [
-  { value: 0, label: "Never", className: "rating-never" },
-  { value: 1, label: "Ask Me", className: "rating-ask" },
-  { value: 2, label: "Willing", className: "rating-willing" },
-  { value: 3, label: "Love", className: "rating-love" },
-  { value: 4, label: "Crave", className: "rating-crave" },
+  { value: 0, label: "Never" },
+  { value: 1, label: "Ask Me" },
+  { value: 2, label: "Willing" },
+  { value: 3, label: "Love" },
+  { value: 4, label: "Crave" },
 ] as const;
 
 type AnswerLevel = (typeof ratingOptions)[number]["value"];
@@ -69,8 +69,8 @@ function App() {
             rating:
               answer === null || answer === undefined
                 ? null
-                : ratingOptions.find((option) => option.value === answer)
-                    ?.label ?? null,
+                : (ratingOptions.find((option) => option.value === answer)
+                    ?.label ?? null),
           };
         }),
       })),
@@ -103,16 +103,8 @@ function App() {
             onClick={exportResults}
             type="button"
           >
-            Export JSON
+            Export
           </button>
-        </div>
-        <div className="intro-copy">
-          <p className="eyebrow mb-2">YOUR LIST, YOUR CALL</p>
-          <h1 className="display-title mb-2">Get to know what you like.</h1>
-          <p className="intro-description mb-0">
-            Take each item at your own pace. Your ratings stay on this page
-            until you export them.
-          </p>
         </div>
       </header>
 
@@ -122,43 +114,11 @@ function App() {
       >
         <div className="row justify-content-center">
           <div className="col-12 col-lg-9 col-xl-8">
-            <div className="progress-panel mb-4">
-              <div className="d-flex justify-content-between align-items-center mb-2">
-                <span className="small fw-semibold text-uppercase progress-label">
-                  Your progress
-                </span>
-                <span className="small text-secondary">
-                  {ratedCount} of {items.length} rated
-                </span>
-              </div>
-              <div
-                aria-label={`${ratedCount} of ${items.length} items rated`}
-                aria-valuemax={items.length}
-                aria-valuemin={0}
-                aria-valuenow={ratedCount}
-                className="progress"
-                role="progressbar"
-              >
-                <div
-                  className="progress-bar"
-                  style={{
-                    width:
-                      items.length === 0
-                        ? "0%"
-                        : `${(ratedCount / items.length) * 100}%`,
-                  }}
-                />
-              </div>
-            </div>
-
             {activeItem ? (
               <>
                 <div className="d-flex justify-content-between align-items-end mb-3">
                   <div>
                     <p className="eyebrow mb-1">{activeItem.category}</p>
-                    <p className="small text-secondary mb-0">
-                      Item {activeItemIndex + 1} of {items.length}
-                    </p>
                   </div>
                   {ratedCount === items.length && (
                     <span className="complete-badge">All rated</span>
@@ -174,14 +134,11 @@ function App() {
                 />
 
                 <div className="rating-area mt-4">
-                  <p className="text-center fw-semibold mb-3">
-                    How do you feel about this?
-                  </p>
                   <div className="rating-options">
                     {ratingOptions.map((option) => (
                       <button
                         aria-pressed={activeAnswer === option.value}
-                        className={`btn rating-choice ${option.className}${activeAnswer === option.value ? " is-selected" : ""}`}
+                        className={`btn rating-choice${activeAnswer === option.value ? " is-selected" : ""}`}
                         key={option.value}
                         onClick={() => handleAnswerClick(option.value)}
                         type="button"
@@ -229,7 +186,10 @@ function App() {
               </div>
             )}
 
-            <p aria-live="polite" className="export-message text-center mt-3 mb-0">
+            <p
+              aria-live="polite"
+              className="export-message text-center mt-3 mb-0"
+            >
               {exportMessage}
             </p>
             <p className="privacy-note text-center mt-3 mb-0">
