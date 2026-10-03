@@ -17,11 +17,11 @@ export interface ItemData {
 const categories: Category[] = itemsData;
 
 const ratingOptions = [
-  { value: 0, label: "Never" },
-  { value: 1, label: "Ask Me" },
-  { value: 2, label: "Willing" },
-  { value: 3, label: "Love" },
-  { value: 4, label: "Crave" },
+  { value: 0, label: "Never", className: "rating-never" },
+  { value: 1, label: "Ask Me", className: "rating-ask" },
+  { value: 2, label: "Willing", className: "rating-willing" },
+  { value: 3, label: "Love", className: "rating-love" },
+  { value: 4, label: "Crave", className: "rating-crave" },
 ] as const;
 
 type AnswerLevel = (typeof ratingOptions)[number]["value"];
@@ -145,7 +145,7 @@ function App() {
                         {ratingOptions.map((option) => (
                           <button
                             aria-pressed={activeAnswer === option.value}
-                            className={`btn rating-choice${activeAnswer === option.value ? " is-selected" : ""}`}
+                            className={`btn rating-choice ${option.className}${activeAnswer === option.value ? " is-selected" : ""}`}
                             key={option.value}
                             onClick={() => handleAnswerClick(option.value)}
                             type="button"

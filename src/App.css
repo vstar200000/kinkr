@@ -108,10 +108,46 @@
   transform: translateY(-1px);
 }
 
+.rating-never:hover,
+.rating-ask:hover,
+.rating-willing:hover,
+.rating-love:hover {
+  opacity: 0.5;
+}
+
 .rating-choice.is-selected {
   background: #7c234e;
   border-color: #7c234e;
   color: #fff;
+}
+
+.rating-never.is-selected {
+  background: #920000;
+  border-color: #920000;
+}
+
+.rating-ask.is-selected {
+  background: #fdfd68;
+  border-color: #fdfd68;
+  color: #24212b;
+}
+
+.rating-willing.is-selected {
+  background: #ffa500;
+  border-color: #ffa500;
+  color: #24212b;
+}
+
+.rating-love.is-selected {
+  background: #23fd22;
+  border-color: #23fd22;
+  color: #24212b;
+}
+
+.rating-crave.is-selected {
+  background: #007fff;
+  border-color: #007fff;
+  color: #24212b;
 }
 
 .rating-choice:focus-visible,
