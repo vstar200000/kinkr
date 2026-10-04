@@ -27,9 +27,10 @@ function drawCircle(
   x: number,
   y: number,
   color: string | null,
+  radius = RADIUS,
 ) {
   ctx.beginPath();
-  ctx.arc(x, y, RADIUS, 0, Math.PI * 2);
+  ctx.arc(x, y, radius, 0, Math.PI * 2);
   if (color) {
     ctx.fillStyle = color;
     ctx.fill();
@@ -66,14 +67,10 @@ export function renderResultsCanvas(
     measure.font = font;
     return measure.measureText(text).width;
   };
-  const legendWidth = ratingOptions.reduce(
-    (sum, option) =>
-      sum + 24 + textWidth(`14px ${FONT}`, option.label) + 22,
-    -22,
-  );
-  const contentWidth = Math.max(
-    textWidth(`700 30px ${FONT}`, "kinkr results"),
-    legendWidth,
+  const LEGEND_ROW_H = 24;
+  const LEGEND_GAP = 20;
+  const titleWidth = textWidth(`700 30px ${FONT}`, "kinkr results");
+  const bodyWidth = Math.max(
     ...groups.map((group) =>
       Math.max(
         textWidth(`700 20px ${FONT}`, group.category),
@@ -85,9 +82,38 @@ export function renderResultsCanvas(
       ),
     ),
   );
+  const legendEntries = ratingOptions.map((option) => ({
+    option,
+    width: 24 + textWidth(`14px ${FONT}`, option.label),
+  }));
+  const legendMaxWidth = Math.max(
+    bodyWidth - titleWidth - 40,
+    ...legendEntries.map((entry) => entry.width),
+    260,
+  );
+  const legendRows: (typeof legendEntries)[] = [[]];
+  for (const entry of legendEntries) {
+    const row = legendRows[legendRows.length - 1];
+    const rowWidth =
+      row.reduce((sum, e) => sum + e.width + LEGEND_GAP, 0) + entry.width;
+    if (row.length > 0 && rowWidth > legendMaxWidth) {
+      legendRows.push([entry]);
+    } else {
+      row.push(entry);
+    }
+  }
+  const legendWidth = Math.max(
+    ...legendRows.map(
+      (row) =>
+        row.reduce((sum, e) => sum + e.width, 0) +
+        LEGEND_GAP * (row.length - 1),
+    ),
+  );
+  const legendHeight = legendRows.length * LEGEND_ROW_H;
+  const contentWidth = Math.max(bodyWidth, titleWidth + 40 + legendWidth);
   const WIDTH = Math.ceil(contentWidth) + PAD * 2;
 
-  const headerH = 130;
+  const headerH = Math.max(80, legendHeight) + PAD + 16;
   const groupHeadH = 56;
   const height =
     headerH +
@@ -114,17 +140,20 @@ export function renderResultsCanvas(
   ctx.textAlign = "left";
   ctx.fillText("kinkr results", PAD, PAD + 8);
 
-  // Legend
-  let legendX = PAD;
+  // Legend, top right, wrapping
+  const legendX = WIDTH - PAD - legendWidth;
   ctx.font = `14px ${FONT}`;
-  for (const option of ratingOptions) {
-    drawCircle(ctx, legendX + 8, PAD + 62, option.color);
-    ctx.fillStyle = "#24212b";
-    ctx.textAlign = "left";
-    ctx.fillText(option.label, legendX + 24, PAD + 62);
-    legendX += 24 + ctx.measureText(option.label).width + 22;
-  }
-
+  legendRows.forEach((row, rowIndex) => {
+    const cy = PAD + LEGEND_ROW_H / 2 + rowIndex * LEGEND_ROW_H;
+    let x = legendX;
+    for (const { option, width } of row) {
+      drawCircle(ctx, x + 8, cy, option.color, 8);
+      ctx.fillStyle = "#24212b";
+      ctx.textAlign = "left";
+      ctx.fillText(option.label, x + 24, cy);
+      x += width + LEGEND_GAP;
+    }
+  });
   let y = headerH;
   for (const group of groups) {
     const roles = group.items[0].roles;
