@@ -49,13 +49,17 @@ export function renderResultsCanvas(
   const colorOf = (value: number | null) =>
     ratingOptions.find((option) => option.value === value)?.color ?? null;
 
-  const groups: { category: string; items: ExportItem[] }[] = [];
+  const groups: {
+    category: string;
+    roles: string[];
+    items: ExportItem[];
+  }[] = [];
   for (const item of items) {
     const last = groups[groups.length - 1];
     if (last && last.category === item.category) {
       last.items.push(item);
     } else {
-      groups.push({ category: item.category, items: [item] });
+      groups.push({ category: item.category, roles: item.roles, items: [item] });
     }
   }
 
@@ -69,59 +73,113 @@ export function renderResultsCanvas(
   };
   const LEGEND_ROW_H = 24;
   const LEGEND_GAP = 20;
+  const COLUMN_GAP = 48;
+  const GROUP_HEAD_H = 56;
+  const GROUP_GAP = 16;
   const titleWidth = textWidth(`700 30px ${FONT}`, "kinkr results");
-  const bodyWidth = Math.max(
-    ...groups.map((group) =>
+
+  const blocks = groups.map((group) => ({
+    group,
+    height: GROUP_HEAD_H + group.items.length * ROW_H + GROUP_GAP,
+    width: Math.max(
+      textWidth(`700 20px ${FONT}`, group.category),
       Math.max(
-        textWidth(`700 20px ${FONT}`, group.category),
-        Math.max(
-          ...group.items.map((item) => textWidth(`15px ${FONT}`, item.name)),
-        ) +
-          28 +
-          group.items[0].roles.length * COL_W,
-      ),
+        ...group.items.map((item) => textWidth(`15px ${FONT}`, item.name)),
+      ) +
+        28 +
+        group.roles.length * COL_W,
     ),
-  );
+  }));
+  const columnWidth = Math.ceil(Math.max(...blocks.map((b) => b.width)));
+
   const legendEntries = ratingOptions.map((option) => ({
     option,
     width: 24 + textWidth(`14px ${FONT}`, option.label),
   }));
-  const legendMaxWidth = Math.max(
-    bodyWidth - titleWidth - 40,
-    ...legendEntries.map((entry) => entry.width),
-    260,
-  );
-  const legendRows: (typeof legendEntries)[] = [[]];
-  for (const entry of legendEntries) {
-    const row = legendRows[legendRows.length - 1];
-    const rowWidth =
-      row.reduce((sum, e) => sum + e.width + LEGEND_GAP, 0) + entry.width;
-    if (row.length > 0 && rowWidth > legendMaxWidth) {
-      legendRows.push([entry]);
-    } else {
-      row.push(entry);
+  const layoutLegend = (maxWidth: number) => {
+    const rows: (typeof legendEntries)[] = [[]];
+    for (const entry of legendEntries) {
+      const row = rows[rows.length - 1];
+      const rowWidth =
+        row.reduce((sum, e) => sum + e.width + LEGEND_GAP, 0) + entry.width;
+      if (row.length > 0 && rowWidth > maxWidth) {
+        rows.push([entry]);
+      } else {
+        row.push(entry);
+      }
+    }
+    const width = Math.max(
+      ...rows.map(
+        (row) =>
+          row.reduce((sum, e) => sum + e.width, 0) +
+          LEGEND_GAP * (row.length - 1),
+      ),
+    );
+    return { rows, width, height: rows.length * LEGEND_ROW_H };
+  };
+
+  // Split blocks into contiguous columns, minimizing the tallest column
+  const splitColumns = (count: number) => {
+    const total = blocks.reduce((sum, b) => sum + b.height, 0);
+    let low = Math.max(...blocks.map((b) => b.height));
+    let high = total;
+    const fill = (cap: number) => {
+      const cols: (typeof blocks)[] = [[]];
+      let used = 0;
+      for (const block of blocks) {
+        if (used + block.height > cap && cols[cols.length - 1].length > 0) {
+          cols.push([]);
+          used = 0;
+        }
+        cols[cols.length - 1].push(block);
+        used += block.height;
+      }
+      return cols;
+    };
+    while (low < high) {
+      const mid = Math.floor((low + high) / 2);
+      if (fill(mid).length <= count) {
+        high = mid;
+      } else {
+        low = mid + 1;
+      }
+    }
+    return fill(low);
+  };
+
+  const buildLayout = (count: number) => {
+    const columns = splitColumns(count);
+    const columnsWidth =
+      columns.length * columnWidth + (columns.length - 1) * COLUMN_GAP;
+    const legend = layoutLegend(
+      Math.max(columnsWidth - titleWidth - 40, 260),
+    );
+    const contentWidth = Math.ceil(
+      Math.max(columnsWidth, titleWidth + 40 + legend.width),
+    );
+    const headerH = Math.max(80, legend.height) + PAD + 16;
+    const tallest = Math.max(
+      ...columns.map((col) => col.reduce((sum, b) => sum + b.height, 0)),
+    );
+    return {
+      columns,
+      legend,
+      headerH,
+      width: contentWidth + PAD * 2,
+      height: headerH + tallest + PAD - GROUP_GAP,
+    };
+  };
+
+  // Pick the column count whose image is closest to square
+  let layout = buildLayout(1);
+  for (let count = 2; count <= blocks.length; count += 1) {
+    const candidate = buildLayout(count);
+    const score = (l: typeof layout) => Math.abs(Math.log(l.width / l.height));
+    if (score(candidate) < score(layout)) {
+      layout = candidate;
     }
   }
-  const legendWidth = Math.max(
-    ...legendRows.map(
-      (row) =>
-        row.reduce((sum, e) => sum + e.width, 0) +
-        LEGEND_GAP * (row.length - 1),
-    ),
-  );
-  const legendHeight = legendRows.length * LEGEND_ROW_H;
-  const contentWidth = Math.max(bodyWidth, titleWidth + 40 + legendWidth);
-  const WIDTH = Math.ceil(contentWidth) + PAD * 2;
-
-  const headerH = Math.max(80, legendHeight) + PAD + 16;
-  const groupHeadH = 56;
-  const height =
-    headerH +
-    groups.reduce(
-      (sum, group) => sum + groupHeadH + group.items.length * ROW_H + 16,
-      0,
-    ) +
-    PAD;
+  const { columns, legend, headerH, width: WIDTH, height } = layout;
 
   const canvas = document.createElement("canvas");
   canvas.width = WIDTH * SCALE;
@@ -141,9 +199,9 @@ export function renderResultsCanvas(
   ctx.fillText("kinkr results", PAD, PAD + 8);
 
   // Legend, top right, wrapping
-  const legendX = WIDTH - PAD - legendWidth;
+  const legendX = WIDTH - PAD - legend.width;
   ctx.font = `14px ${FONT}`;
-  legendRows.forEach((row, rowIndex) => {
+  legend.rows.forEach((row, rowIndex) => {
     const cy = PAD + LEGEND_ROW_H / 2 + rowIndex * LEGEND_ROW_H;
     let x = legendX;
     for (const { option, width } of row) {
@@ -154,49 +212,52 @@ export function renderResultsCanvas(
       x += width + LEGEND_GAP;
     }
   });
-  let y = headerH;
-  for (const group of groups) {
-    const roles = group.items[0].roles;
-    const rightEdge = WIDTH - PAD;
 
-    ctx.fillStyle = "#7c234e";
-    ctx.font = `700 20px ${FONT}`;
-    ctx.textAlign = "left";
-    ctx.fillText(group.category, PAD, y + 16);
+  columns.forEach((column, columnIndex) => {
+    const left = PAD + columnIndex * (columnWidth + COLUMN_GAP);
+    const rightEdge = left + columnWidth;
+    let y = headerH;
 
-    if (roles.length > 1) {
-      ctx.fillStyle = "#6b6775";
-      ctx.font = `600 13px ${FONT}`;
-      ctx.textAlign = "center";
-      roles.forEach((role, index) => {
-        const cx = rightEdge - COL_W * (roles.length - index) + COL_W / 2;
-        ctx.fillText(titleCase(role), cx, y + 40);
-      });
-    }
-    ctx.strokeStyle = "#e3e1e8";
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(PAD, y + groupHeadH - 6);
-    ctx.lineTo(rightEdge, y + groupHeadH - 6);
-    ctx.stroke();
-    y += groupHeadH;
+    for (const { group } of column) {
+      const roles = group.roles;
+      const circleX = (index: number) =>
+        rightEdge - COL_W * (roles.length - index) + COL_W / 2;
 
-    for (const item of group.items) {
-      const cy = y + ROW_H / 2;
-      ctx.fillStyle = "#24212b";
-      ctx.font = `15px ${FONT}`;
+      ctx.fillStyle = "#7c234e";
+      ctx.font = `700 20px ${FONT}`;
       ctx.textAlign = "left";
-      ctx.fillText(item.name, PAD, cy);
-      item.ratings.forEach((rating, index) => {
-        const cx =
-          rightEdge - COL_W * (roles.length - index) + COL_W / 2;
-        drawCircle(ctx, cx, cy, colorOf(rating));
-      });
-      y += ROW_H;
-    }
-    y += 16;
-  }
+      ctx.fillText(group.category, left, y + 16);
 
+      if (roles.length > 1) {
+        ctx.fillStyle = "#6b6775";
+        ctx.font = `600 13px ${FONT}`;
+        ctx.textAlign = "center";
+        roles.forEach((role, index) => {
+          ctx.fillText(titleCase(role), circleX(index), y + 40);
+        });
+      }
+      ctx.strokeStyle = "#e3e1e8";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(left, y + GROUP_HEAD_H - 6);
+      ctx.lineTo(rightEdge, y + GROUP_HEAD_H - 6);
+      ctx.stroke();
+      y += GROUP_HEAD_H;
+
+      for (const item of group.items) {
+        const cy = y + ROW_H / 2;
+        ctx.fillStyle = "#24212b";
+        ctx.font = `15px ${FONT}`;
+        ctx.textAlign = "left";
+        ctx.fillText(item.name, left, cy);
+        item.ratings.forEach((rating, index) => {
+          drawCircle(ctx, circleX(index), cy, colorOf(rating));
+        });
+        y += ROW_H;
+      }
+      y += GROUP_GAP;
+    }
+  });
   return canvas;
 }
 
