@@ -20,6 +20,7 @@ export interface ItemData {
 const categories: Category[] = itemsData;
 
 const ratingOptions = [
+  { value: -1, label: "Hard Limit", className: "rating-hard-limit" },
   { value: 0, label: "Never", className: "rating-never" },
   { value: 1, label: "Ask Me", className: "rating-ask" },
   { value: 2, label: "Willing", className: "rating-willing" },
@@ -29,13 +30,7 @@ const ratingOptions = [
 
 type AnswerLevel = (typeof ratingOptions)[number]["value"];
 
-type Role =
-  | "self"
-  | "partner"
-  | "giving"
-  | "receiving"
-  | "actor"
-  | "subject";
+type Role = "self" | "partner" | "giving" | "receiving" | "actor" | "subject";
 
 type ItemAnswers = Record<Role, AnswerLevel | null>;
 
@@ -90,9 +85,7 @@ function App() {
   const activeRoles = activeItem?.roles ?? [];
   const activeAnswers = answers[activeItemIndex];
   const ratedCount = answers.filter((itemAnswers, index) =>
-    items[index].roles.every(
-      (role) => itemAnswers[role] !== null,
-    ),
+    items[index].roles.every((role) => itemAnswers[role] !== null),
   ).length;
   const isActiveItemRated = activeRoles.every(
     (role) => activeAnswers?.[role] !== null,
@@ -107,7 +100,9 @@ function App() {
       ),
     );
     setExportMessage("");
-    if (activeRoles.every((activeRole) => updatedAnswers[activeRole] !== null)) {
+    if (
+      activeRoles.every((activeRole) => updatedAnswers[activeRole] !== null)
+    ) {
       setActiveItemIndex((currentIndex) =>
         Math.min(currentIndex + 1, items.length - 1),
       );

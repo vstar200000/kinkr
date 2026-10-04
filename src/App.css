@@ -148,10 +148,12 @@
   transform: translateY(-1px);
 }
 
+.rating-hard-limit:hover,
 .rating-never:hover,
 .rating-ask:hover,
 .rating-willing:hover,
-.rating-love:hover {
+.rating-love:hover,
+.rating-crave:hover {
   opacity: 0.5;
 }
 
@@ -159,6 +161,11 @@
   background: #7c234e;
   border-color: #7c234e;
   color: #fff;
+}
+
+.rating-hard-limit.is-selected {
+  background: #000000;
+  border-color: #000000;
 }
 
 .rating-never.is-selected {
