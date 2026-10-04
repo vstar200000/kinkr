@@ -13,11 +13,10 @@ export interface ExportItem {
 
 const FONT = "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
 const SCALE = 2;
-const WIDTH = 900;
 const PAD = 40;
 const ROW_H = 34;
 const RADIUS = 11;
-const COL_W = 110;
+const COL_W = 84;
 
 function titleCase(text: string) {
   return text.charAt(0).toUpperCase() + text.slice(1);
@@ -58,6 +57,35 @@ export function renderResultsCanvas(
       groups.push({ category: item.category, items: [item] });
     }
   }
+
+  const measure = document.createElement("canvas").getContext("2d");
+  if (!measure) {
+    throw new Error("Canvas is not supported in this browser.");
+  }
+  const textWidth = (font: string, text: string) => {
+    measure.font = font;
+    return measure.measureText(text).width;
+  };
+  const legendWidth = ratingOptions.reduce(
+    (sum, option) =>
+      sum + 24 + textWidth(`14px ${FONT}`, option.label) + 22,
+    -22,
+  );
+  const contentWidth = Math.max(
+    textWidth(`700 30px ${FONT}`, "kinkr results"),
+    legendWidth,
+    ...groups.map((group) =>
+      Math.max(
+        textWidth(`700 20px ${FONT}`, group.category),
+        Math.max(
+          ...group.items.map((item) => textWidth(`15px ${FONT}`, item.name)),
+        ) +
+          28 +
+          group.items[0].roles.length * COL_W,
+      ),
+    ),
+  );
+  const WIDTH = Math.ceil(contentWidth) + PAD * 2;
 
   const headerH = 130;
   const groupHeadH = 56;
@@ -112,7 +140,7 @@ export function renderResultsCanvas(
       ctx.font = `600 13px ${FONT}`;
       ctx.textAlign = "center";
       roles.forEach((role, index) => {
-        const cx = rightEdge - COL_W * (roles.length - 1 - index) - RADIUS - 20;
+        const cx = rightEdge - COL_W * (roles.length - index) + COL_W / 2;
         ctx.fillText(titleCase(role), cx, y + 40);
       });
     }
@@ -132,7 +160,7 @@ export function renderResultsCanvas(
       ctx.fillText(item.name, PAD, cy);
       item.ratings.forEach((rating, index) => {
         const cx =
-          rightEdge - COL_W * (roles.length - 1 - index) - RADIUS - 20;
+          rightEdge - COL_W * (roles.length - index) + COL_W / 2;
         drawCircle(ctx, cx, cy, colorOf(rating));
       });
       y += ROW_H;
