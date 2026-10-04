@@ -238,7 +238,12 @@ function App() {
           items={items.map((item, index) => ({
             name: item.name,
             category: item.category,
-            answered: item.roles.every((role) => answers[index][role] !== null),
+            dots: item.roles.map(
+              (role) =>
+                ratingOptions.find(
+                  (option) => option.value === answers[index][role],
+                )?.color ?? null,
+            ),
           }))}
           onClose={() => setIsNavOpen(false)}
           onSelect={handleNavSelect}

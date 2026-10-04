@@ -3,7 +3,7 @@ import { useEffect, useRef } from "react";
 interface NavItem {
   name: string;
   category: string;
-  answered: boolean;
+  dots: (string | null)[];
 }
 
 interface NavMenuProps {
@@ -76,11 +76,27 @@ function NavMenu({
                 <li key={index}>
                   <button
                     aria-current={index === activeIndex ? "true" : undefined}
-                    className={`nav-item${index === activeIndex ? " is-active" : ""}${item.answered ? " is-answered" : ""}`}
+                    className={`nav-item${index === activeIndex ? " is-active" : ""}`}
                     onClick={() => onSelect(index)}
                     ref={index === activeIndex ? activeRef : undefined}
                     type="button"
                   >
+                    <span className="nav-dots" aria-hidden="true">
+                      {item.dots.map((color, dotIndex) => (
+                        <span
+                          className="nav-dot"
+                          key={dotIndex}
+                          style={
+                            color
+                              ? {
+                                  background: color,
+                                  borderColor: "rgba(0,0,0,0.35)",
+                                }
+                              : undefined
+                          }
+                        />
+                      ))}
+                    </span>
                     {item.name}
                   </button>
                 </li>
