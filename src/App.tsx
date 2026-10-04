@@ -1,6 +1,7 @@
 import { useState } from "react";
 import "./App.css";
 import Item from "./components/item.tsx";
+import NavMenu from "./components/navMenu.tsx";
 import itemsData from "./data/items.json";
 import { downloadCanvasPng, renderResultsCanvas } from "./exportImage.ts";
 
@@ -21,7 +22,12 @@ export interface ItemData {
 const categories: Category[] = itemsData;
 
 const ratingOptions = [
-  { value: -1, label: "Hard Limit", className: "rating-hard-limit", color: "#000000" },
+  {
+    value: -1,
+    label: "Hard Limit",
+    className: "rating-hard-limit",
+    color: "#000000",
+  },
   { value: 0, label: "Never", className: "rating-never", color: "#920000" },
   { value: 1, label: "Ask Me", className: "rating-ask", color: "#fdfd68" },
   { value: 2, label: "Willing", className: "rating-willing", color: "#ffa500" },
@@ -72,7 +78,9 @@ function getEffectiveAnswer(answer: AnswerLevel | null) {
 
 function getLabel(answer: AnswerLevel | null) {
   const effective = getEffectiveAnswer(answer);
-  return ratingOptions.find((option) => option.value === effective)?.label ?? null;
+  return (
+    ratingOptions.find((option) => option.value === effective)?.label ?? null
+  );
 }
 
 function App() {
@@ -88,6 +96,7 @@ function App() {
     })),
   );
   const [exportMessage, setExportMessage] = useState("");
+  const [isNavOpen, setIsNavOpen] = useState(false);
 
   const activeItem = items[activeItemIndex];
   const activeRoles = activeItem?.roles ?? [];
@@ -115,6 +124,12 @@ function App() {
         Math.min(currentIndex + 1, items.length - 1),
       );
     }
+  }
+
+  function handleNavSelect(index: number) {
+    setActiveItemIndex(index);
+    setExportMessage("");
+    setIsNavOpen(false);
   }
 
   async function exportPng() {
@@ -187,9 +202,16 @@ function App() {
     <main className="app-shell">
       <header className="container py-4 py-md-5">
         <div className="d-flex flex-wrap align-items-center justify-content-between gap-3">
-          <a className="brand text-decoration-none" href="#top" id="top">
+          <button
+            aria-controls="nav-menu"
+            aria-expanded={isNavOpen}
+            className="brand brand-button"
+            id="top"
+            onClick={() => setIsNavOpen((open) => !open)}
+            type="button"
+          >
             kinkr<span className="brand-period">.</span>
-          </a>
+          </button>
           <div className="btn-group" role="group" aria-label="Export options">
             <button
               className="btn btn-outline-dark export-button"
@@ -209,123 +231,141 @@ function App() {
         </div>
       </header>
 
-      <section
-        aria-label="Item ratings"
-        className="rating-workspace pb-5"
-        style={
-          activeItem?.image
-            ? {
-                backgroundImage: `linear-gradient(rgb(251 250 252 / 78%), rgb(251 250 252 / 88%)), url(${JSON.stringify(activeItem.image)})`,
-              }
-            : undefined
-        }
-      >
-        <div className="container">
-          <div className="row justify-content-center">
-            <div className="col-12 col-lg-9 col-xl-8">
-              {activeItem ? (
-                <>
-                  <div className="d-flex justify-content-between align-items-end mb-3">
-                    <div>
-                      <p className="eyebrow mb-1">{activeItem.category}</p>
+      <div className="app-body">
+        <NavMenu
+          activeIndex={activeItemIndex}
+          isOpen={isNavOpen}
+          items={items.map((item, index) => ({
+            name: item.name,
+            category: item.category,
+            answered: item.roles.every((role) => answers[index][role] !== null),
+          }))}
+          onClose={() => setIsNavOpen(false)}
+          onSelect={handleNavSelect}
+        />
+        <section
+          aria-label="Item ratings"
+          className="rating-workspace pb-5"
+          style={
+            activeItem?.image
+              ? {
+                  backgroundImage: `linear-gradient(rgb(251 250 252 / 78%), rgb(251 250 252 / 88%)), url(${JSON.stringify(activeItem.image)})`,
+                }
+              : undefined
+          }
+        >
+          <div className="container">
+            <div className="row justify-content-center">
+              <div className="col-12 col-lg-9 col-xl-8">
+                {activeItem ? (
+                  <>
+                    <div className="d-flex justify-content-between align-items-end mb-3">
+                      <div>
+                        <p className="eyebrow mb-1">{activeItem.category}</p>
+                      </div>
+                      {ratedCount === items.length && (
+                        <span className="complete-badge">All rated</span>
+                      )}
                     </div>
-                    {ratedCount === items.length && (
-                      <span className="complete-badge">All rated</span>
-                    )}
-                  </div>
 
-                  <Item
-                    key={activeItemIndex}
-                    description={activeItem.description}
-                    name={activeItem.name}
-                  />
+                    <Item
+                      key={activeItemIndex}
+                      description={activeItem.description}
+                      name={activeItem.name}
+                    />
 
-                  <div className="rating-controls mt-auto">
-                    <div className="rating-area mt-4">
-                      {activeRoles.map((role) => (
-                        <div
-                          aria-label={activeRoles.length > 1 ? role : undefined}
-                          className="rating-group"
-                          key={role}
-                          role={activeRoles.length > 1 ? "group" : undefined}
-                        >
-                          {activeRoles.length > 1 && (
-                            <p className="rating-group-label">{role}</p>
-                          )}
-                          <div className="rating-options">
-                            {ratingOptions.map((option) => (
-                              <button
-                                aria-pressed={
-                                  getEffectiveAnswer(activeAnswers[role]) === option.value
-                                }
-                                className={`btn rating-choice ${option.className}${getEffectiveAnswer(activeAnswers[role]) === option.value ? " is-selected" : ""}`}
-                                key={option.value}
-                                onClick={() =>
-                                  handleAnswerClick(role, option.value)
-                                }
-                                type="button"
-                              >
-                                {option.label}
-                              </button>
-                            ))}
+                    <div className="rating-controls mt-auto">
+                      <div className="rating-area mt-4">
+                        {activeRoles.map((role) => (
+                          <div
+                            aria-label={
+                              activeRoles.length > 1 ? role : undefined
+                            }
+                            className="rating-group"
+                            key={role}
+                            role={activeRoles.length > 1 ? "group" : undefined}
+                          >
+                            {activeRoles.length > 1 && (
+                              <p className="rating-group-label">{role}</p>
+                            )}
+                            <div className="rating-options">
+                              {ratingOptions.map((option) => (
+                                <button
+                                  aria-pressed={
+                                    getEffectiveAnswer(activeAnswers[role]) ===
+                                    option.value
+                                  }
+                                  className={`btn rating-choice ${option.className}${getEffectiveAnswer(activeAnswers[role]) === option.value ? " is-selected" : ""}`}
+                                  key={option.value}
+                                  onClick={() =>
+                                    handleAnswerClick(role, option.value)
+                                  }
+                                  type="button"
+                                >
+                                  {option.label}
+                                </button>
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
+
+                      <nav
+                        aria-label="Item navigation"
+                        className="d-flex justify-content-between mt-4"
+                      >
+                        <button
+                          className="btn btn-link navigation-button"
+                          disabled={activeItemIndex === 0}
+                          onClick={() =>
+                            setActiveItemIndex((index) =>
+                              Math.max(index - 1, 0),
+                            )
+                          }
+                          type="button"
+                        >
+                          Previous
+                        </button>
+                        <button
+                          className="btn btn-link navigation-button"
+                          disabled={activeItemIndex === items.length - 1}
+                          onClick={() =>
+                            setActiveItemIndex((index) =>
+                              Math.min(index + 1, items.length - 1),
+                            )
+                          }
+                          type="button"
+                        >
+                          {isActiveItemRated ? "Next item" : "Skip for now"}
+                        </button>
+                      </nav>
+
+                      <p
+                        aria-live="polite"
+                        className="export-message text-center mt-3 mb-0"
+                      >
+                        {exportMessage}
+                      </p>
+                      <p className="privacy-note text-center mt-3 mb-0">
+                        Your ratings stay in this browser session. Export a copy
+                        before leaving.
+                      </p>
                     </div>
-
-                    <nav
-                      aria-label="Item navigation"
-                      className="d-flex justify-content-between mt-4"
-                    >
-                      <button
-                        className="btn btn-link navigation-button"
-                        disabled={activeItemIndex === 0}
-                        onClick={() =>
-                          setActiveItemIndex((index) => Math.max(index - 1, 0))
-                        }
-                        type="button"
-                      >
-                        Previous
-                      </button>
-                      <button
-                        className="btn btn-link navigation-button"
-                        disabled={activeItemIndex === items.length - 1}
-                        onClick={() =>
-                          setActiveItemIndex((index) =>
-                            Math.min(index + 1, items.length - 1),
-                          )
-                        }
-                        type="button"
-                      >
-                        {isActiveItemRated ? "Next item" : "Skip for now"}
-                      </button>
-                    </nav>
-
-                    <p
-                      aria-live="polite"
-                      className="export-message text-center mt-3 mb-0"
-                    >
-                      {exportMessage}
-                    </p>
-                    <p className="privacy-note text-center mt-3 mb-0">
-                      Your ratings stay in this browser session. Export a copy
-                      before leaving.
+                  </>
+                ) : (
+                  <div className="empty-state text-center p-5">
+                    <h2 className="h4">There are no items yet.</h2>
+                    <p className="text-secondary mb-0">
+                      Add items to <code>src/data/items.json</code> to get
+                      started.
                     </p>
                   </div>
-                </>
-              ) : (
-                <div className="empty-state text-center p-5">
-                  <h2 className="h4">There are no items yet.</h2>
-                  <p className="text-secondary mb-0">
-                    Add items to <code>src/data/items.json</code> to get
-                    started.
-                  </p>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
     </main>
   );
 }
