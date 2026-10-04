@@ -64,8 +64,15 @@ const items = categories.flatMap(
     })),
 );
 
+const DEFAULT_ANSWER: AnswerLevel = 1;
+
+function getEffectiveAnswer(answer: AnswerLevel | null) {
+  return answer ?? DEFAULT_ANSWER;
+}
+
 function getLabel(answer: AnswerLevel | null) {
-  return ratingOptions.find((option) => option.value === answer)?.label ?? null;
+  const effective = getEffectiveAnswer(answer);
+  return ratingOptions.find((option) => option.value === effective)?.label ?? null;
 }
 
 function App() {
@@ -118,7 +125,9 @@ function App() {
           name: item.name,
           category: item.category,
           roles: item.roles,
-          ratings: item.roles.map((role) => answers[index][role]),
+          ratings: item.roles.map((role) =>
+            getEffectiveAnswer(answers[index][role]),
+          ),
         })),
         ratingOptions,
       );
@@ -247,9 +256,9 @@ function App() {
                             {ratingOptions.map((option) => (
                               <button
                                 aria-pressed={
-                                  activeAnswers[role] === option.value
+                                  getEffectiveAnswer(activeAnswers[role]) === option.value
                                 }
-                                className={`btn rating-choice ${option.className}${activeAnswers[role] === option.value ? " is-selected" : ""}`}
+                                className={`btn rating-choice ${option.className}${getEffectiveAnswer(activeAnswers[role]) === option.value ? " is-selected" : ""}`}
                                 key={option.value}
                                 onClick={() =>
                                   handleAnswerClick(role, option.value)
