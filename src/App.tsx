@@ -2,6 +2,7 @@ import { useState } from "react";
 import "./App.css";
 import Item from "./components/item.tsx";
 import itemsData from "./data/items.json";
+import { downloadCanvasPng, renderResultsCanvas } from "./exportImage.ts";
 
 export interface Category {
   category: string;
@@ -20,12 +21,12 @@ export interface ItemData {
 const categories: Category[] = itemsData;
 
 const ratingOptions = [
-  { value: -1, label: "Hard Limit", className: "rating-hard-limit" },
-  { value: 0, label: "Never", className: "rating-never" },
-  { value: 1, label: "Ask Me", className: "rating-ask" },
-  { value: 2, label: "Willing", className: "rating-willing" },
-  { value: 3, label: "Love", className: "rating-love" },
-  { value: 4, label: "Crave", className: "rating-crave" },
+  { value: -1, label: "Hard Limit", className: "rating-hard-limit", color: "#000000" },
+  { value: 0, label: "Never", className: "rating-never", color: "#920000" },
+  { value: 1, label: "Ask Me", className: "rating-ask", color: "#fdfd68" },
+  { value: 2, label: "Willing", className: "rating-willing", color: "#ffa500" },
+  { value: 3, label: "Love", className: "rating-love", color: "#23fd22" },
+  { value: 4, label: "Crave", className: "rating-crave", color: "#007fff" },
 ] as const;
 
 type AnswerLevel = (typeof ratingOptions)[number]["value"];
@@ -109,6 +110,25 @@ function App() {
     }
   }
 
+  async function exportPng() {
+    const date = new Date().toISOString().slice(0, 10);
+    try {
+      const canvas = renderResultsCanvas(
+        items.map((item, index) => ({
+          name: item.name,
+          category: item.category,
+          roles: item.roles,
+          ratings: item.roles.map((role) => answers[index][role]),
+        })),
+        ratingOptions,
+      );
+      await downloadCanvasPng(canvas, `kinkr-results-${date}.png`);
+      setExportMessage("Your PNG results have been downloaded.");
+    } catch {
+      setExportMessage("Sorry, the PNG could not be created.");
+    }
+  }
+
   function exportResults() {
     let itemIndex = 0;
     const exportData = {
@@ -161,13 +181,22 @@ function App() {
           <a className="brand text-decoration-none" href="#top" id="top">
             kinkr<span className="brand-period">.</span>
           </a>
-          <button
-            className="btn btn-outline-dark export-button"
-            onClick={exportResults}
-            type="button"
-          >
-            Export
-          </button>
+          <div className="btn-group" role="group" aria-label="Export options">
+            <button
+              className="btn btn-outline-dark export-button"
+              onClick={exportPng}
+              type="button"
+            >
+              Export PNG
+            </button>
+            <button
+              className="btn btn-outline-dark export-button"
+              onClick={exportResults}
+              type="button"
+            >
+              Export JSON
+            </button>
+          </div>
         </div>
       </header>
 
