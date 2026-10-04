@@ -11,6 +11,7 @@ interface NavMenuProps {
   activeIndex: number;
   isOpen: boolean;
   onSelect: (index: number) => void;
+  onAddItem: (category: string) => void;
   onClose: () => void;
 }
 
@@ -19,6 +20,7 @@ function NavMenu({
   activeIndex,
   isOpen,
   onSelect,
+  onAddItem,
   onClose,
 }: NavMenuProps) {
   const activeRef = useRef<HTMLButtonElement>(null);
@@ -102,6 +104,13 @@ function NavMenu({
                 </li>
               ))}
             </ul>
+            <button
+              className="nav-add"
+              onClick={() => onAddItem(group.category)}
+              type="button"
+            >
+              + New Item
+            </button>
           </section>
         ))}
       </nav>

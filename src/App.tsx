@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import "./App.css";
 import Item from "./components/item.tsx";
 import NavMenu from "./components/navMenu.tsx";
@@ -55,21 +55,63 @@ function getRoles(
   return selfPartner ? ["self", "partner"] : ["self"];
 }
 
-const items = categories.flatMap(
-  ({
-    category,
-    "self-partner": selfPartner = false,
-    "giving-receiving": givingReceiving = false,
-    "actor-subject": actorSubject = false,
-    items: categoryItems,
-  }) =>
-    categoryItems.map((item) => ({
-      ...item,
-      category,
-      roles: getRoles(selfPartner, givingReceiving, actorSubject),
-    })),
-);
+interface CustomItem {
+  id: number;
+  category: string;
+  name: string;
+}
 
+interface AppItem extends ItemData {
+  key: string;
+  category: string;
+  roles: Role[];
+  custom?: boolean;
+  rawName?: string;
+}
+
+const UNTITLED_NAME = "Untitled item";
+
+// Base items keep stable keys; custom items go after their category's own items
+function buildItems(customItems: CustomItem[]): AppItem[] {
+  let baseIndex = 0;
+  return categories.flatMap(
+    ({
+      category,
+      "self-partner": selfPartner = false,
+      "giving-receiving": givingReceiving = false,
+      "actor-subject": actorSubject = false,
+      items: categoryItems,
+    }) => {
+      const roles = getRoles(selfPartner, givingReceiving, actorSubject);
+      const base: AppItem[] = categoryItems.map((item) => ({
+        ...item,
+        category,
+        roles,
+        key: `base:${baseIndex++}`,
+      }));
+      const custom: AppItem[] = customItems
+        .filter((customItem) => customItem.category === category)
+        .map((customItem) => ({
+          name: customItem.name.trim() || UNTITLED_NAME,
+          rawName: customItem.name,
+          category,
+          roles,
+          key: `custom:${customItem.id}`,
+          custom: true,
+        }));
+      return [...base, ...custom];
+    },
+  );
+}
+
+const emptyAnswers: ItemAnswers = {
+  self: null,
+  partner: null,
+  giving: null,
+  receiving: null,
+  actor: null,
+  subject: null,
+};
 const DEFAULT_ANSWER: AnswerLevel = 1;
 
 function getEffectiveAnswer(answer: AnswerLevel | null) {
@@ -85,37 +127,33 @@ function getLabel(answer: AnswerLevel | null) {
 
 function App() {
   const [activeItemIndex, setActiveItemIndex] = useState(0);
-  const [answers, setAnswers] = useState<ItemAnswers[]>(() =>
-    items.map(() => ({
-      self: null,
-      partner: null,
-      giving: null,
-      receiving: null,
-      actor: null,
-      subject: null,
-    })),
-  );
+  const [answers, setAnswers] = useState<Record<string, ItemAnswers>>({});
+  const [customItems, setCustomItems] = useState<CustomItem[]>([]);
+  const [nextCustomId, setNextCustomId] = useState(1);
+  const [justAddedKey, setJustAddedKey] = useState<string | null>(null);
   const [exportMessage, setExportMessage] = useState("");
   const [isNavOpen, setIsNavOpen] = useState(false);
 
+  const items = useMemo(() => buildItems(customItems), [customItems]);
+  const getAnswers = (key: string) => answers[key] ?? emptyAnswers;
+
   const activeItem = items[activeItemIndex];
   const activeRoles = activeItem?.roles ?? [];
-  const activeAnswers = answers[activeItemIndex];
-  const ratedCount = answers.filter((itemAnswers, index) =>
-    items[index].roles.every((role) => itemAnswers[role] !== null),
+  const activeAnswers = activeItem ? getAnswers(activeItem.key) : emptyAnswers;
+  const ratedCount = items.filter((item) =>
+    item.roles.every((role) => getAnswers(item.key)[role] !== null),
   ).length;
   const isActiveItemRated = activeRoles.every(
-    (role) => activeAnswers?.[role] !== null,
+    (role) => activeAnswers[role] !== null,
   );
 
   function handleAnswerClick(role: Role, answer: AnswerLevel) {
     const updatedAnswers = { ...activeAnswers, [role]: answer };
 
-    setAnswers((currentAnswers) =>
-      currentAnswers.map((currentAnswer, index) =>
-        index === activeItemIndex ? updatedAnswers : currentAnswer,
-      ),
-    );
+    setAnswers((currentAnswers) => ({
+      ...currentAnswers,
+      [activeItem.key]: updatedAnswers,
+    }));
     setExportMessage("");
     if (
       activeRoles.every((activeRole) => updatedAnswers[activeRole] !== null)
@@ -124,6 +162,44 @@ function App() {
         Math.min(currentIndex + 1, items.length - 1),
       );
     }
+  }
+
+  function handleAddItem(category: string) {
+    const id = nextCustomId;
+    const updatedCustomItems = [
+      ...customItems,
+      { id, category, name: "New item" },
+    ];
+    const key = `custom:${id}`;
+
+    setCustomItems(updatedCustomItems);
+    setNextCustomId(id + 1);
+    setJustAddedKey(key);
+    setActiveItemIndex(
+      buildItems(updatedCustomItems).findIndex((item) => item.key === key),
+    );
+    setExportMessage("");
+    setIsNavOpen(false);
+  }
+
+  function handleRenameItem(name: string) {
+    const id = Number(activeItem.key.slice("custom:".length));
+    setCustomItems((current) =>
+      current.map((item) => (item.id === id ? { ...item, name } : item)),
+    );
+    setExportMessage("");
+  }
+
+  function handleRemoveItem() {
+    const id = Number(activeItem.key.slice("custom:".length));
+    setCustomItems((current) => current.filter((item) => item.id !== id));
+    setAnswers((current) => {
+      const rest = { ...current };
+      delete rest[activeItem.key];
+      return rest;
+    });
+    setActiveItemIndex((index) => Math.max(index - 1, 0));
+    setExportMessage("");
   }
 
   function handleNavSelect(index: number) {
@@ -136,12 +212,12 @@ function App() {
     const date = new Date().toISOString().slice(0, 10);
     try {
       const canvas = renderResultsCanvas(
-        items.map((item, index) => ({
+        items.map((item) => ({
           name: item.name,
           category: item.category,
           roles: item.roles,
           ratings: item.roles.map((role) =>
-            getEffectiveAnswer(answers[index][role]),
+            getEffectiveAnswer(getAnswers(item.key)[role]),
           ),
         })),
         ratingOptions,
@@ -154,33 +230,41 @@ function App() {
   }
 
   function exportResults() {
-    let itemIndex = 0;
     const exportData = {
-      formatVersion: 1,
+      formatVersion: 2,
       exportedAt: new Date().toISOString(),
-      categories: categories.map(
-        ({ items: categoryItems, ...categoryDetails }) => ({
+      categories: categories.map((category) => {
+        const categoryDetails = {
+          category: category.category,
+          "self-partner": category["self-partner"],
+          "giving-receiving": category["giving-receiving"],
+          "actor-subject": category["actor-subject"],
+        };
+        return {
           ...categoryDetails,
-          items: categoryItems.map((item) => {
-            const itemAnswers = answers[itemIndex];
-            const itemRoles = items[itemIndex].roles;
-            itemIndex += 1;
+          items: items
+            .filter((item) => item.category === categoryDetails.category)
+            .map((item) => {
+              const itemAnswers = getAnswers(item.key);
 
-            return {
-              ...item,
-              rating:
-                itemRoles.length > 1
-                  ? Object.fromEntries(
-                      itemRoles.map((role) => [
-                        role,
-                        getLabel(itemAnswers[role]),
-                      ]),
-                    )
-                  : getLabel(itemAnswers.self),
-            };
-          }),
-        }),
-      ),
+              return {
+                name: item.name,
+                ...(item.description && { description: item.description }),
+                ...(item.image && { image: item.image }),
+                ...(item.custom && { custom: true }),
+                rating:
+                  item.roles.length > 1
+                    ? Object.fromEntries(
+                        item.roles.map((role) => [
+                          role,
+                          getLabel(itemAnswers[role]),
+                        ]),
+                      )
+                    : getLabel(itemAnswers.self),
+              };
+            }),
+        };
+      }),
     };
     const file = new Blob([JSON.stringify(exportData, null, 2)], {
       type: "application/json",
@@ -235,17 +319,18 @@ function App() {
         <NavMenu
           activeIndex={activeItemIndex}
           isOpen={isNavOpen}
-          items={items.map((item, index) => ({
+          items={items.map((item) => ({
             name: item.name,
             category: item.category,
             dots: item.roles.map(
               (role) =>
                 ratingOptions.find(
-                  (option) => option.value === answers[index][role],
+                  (option) => option.value === getAnswers(item.key)[role],
                 )?.color ?? null,
             ),
           }))}
           onClose={() => setIsNavOpen(false)}
+          onAddItem={handleAddItem}
           onSelect={handleNavSelect}
         />
         <section
@@ -274,9 +359,17 @@ function App() {
                     </div>
 
                     <Item
-                      key={activeItemIndex}
+                      key={activeItem.key}
+                      autoFocus={justAddedKey === activeItem.key}
                       description={activeItem.description}
                       name={activeItem.name}
+                      onNameChange={
+                        activeItem.custom ? handleRenameItem : undefined
+                      }
+                      onRemove={
+                        activeItem.custom ? handleRemoveItem : undefined
+                      }
+                      rawName={activeItem.rawName}
                     />
 
                     <div className="rating-controls mt-auto">
