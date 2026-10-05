@@ -3,9 +3,18 @@ import { useState, type ChangeEvent, type FormEvent } from "react";
 interface LandingPageProps {
   onStart: (listName: string) => void;
   onImport: (text: string) => void;
+  saved: { listName: string; ratedCount: number } | null;
+  onResume: () => void;
+  onDiscard: () => void;
 }
 
-function LandingPage({ onStart, onImport }: LandingPageProps) {
+function LandingPage({
+  onStart,
+  onImport,
+  saved,
+  onResume,
+  onDiscard,
+}: LandingPageProps) {
   const [listName, setListName] = useState("");
   const [importFile, setImportFile] = useState<File | null>(null);
   const [importError, setImportError] = useState("");
@@ -42,6 +51,32 @@ function LandingPage({ onStart, onImport }: LandingPageProps) {
         <p className="text-center text-secondary mb-4">
           Work through a checklist and rate each item.
         </p>
+        {saved && (
+          <div className="card card-body mb-4">
+            <p className="mb-1 fw-semibold">
+              Resume {saved.listName ? `"${saved.listName}"` : "your last list"}
+            </p>
+            <p className="text-secondary small">
+              {saved.ratedCount} item(s) rated, saved in this browser.
+            </p>
+            <div className="d-flex gap-2">
+              <button
+                className="btn btn-dark flex-grow-1"
+                onClick={onResume}
+                type="button"
+              >
+                Resume
+              </button>
+              <button
+                className="btn btn-outline-secondary"
+                onClick={onDiscard}
+                type="button"
+              >
+                Discard
+              </button>
+            </div>
+          </div>
+        )}
         <form onSubmit={handleSubmit}>
           <label className="form-label" htmlFor="list-name">
             List name <span className="text-secondary">(optional)</span>

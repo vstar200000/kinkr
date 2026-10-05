@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import "./App.css";
 import Item from "./components/item.tsx";
 import LandingPage from "./components/LandingPage.tsx";
@@ -8,6 +8,7 @@ import itemsData from "./data/items.json";
 import { downloadCanvasPng, renderResultsCanvas } from "./exportImage.ts";
 import { parseResults, type ImportedResults } from "./importResults.ts";
 import { ratingOptions } from "./ratings.ts";
+import { clearProgress, loadProgress, saveProgress } from "./storage.ts";
 
 export interface Category {
   category: string;
@@ -141,6 +142,10 @@ function Checklist({
   const [isNavOpen, setIsNavOpen] = useState(false);
 
   const items = useMemo(() => buildItems(customItems), [customItems]);
+
+  useEffect(() => {
+    saveProgress({ listName, answers, customItems, nextCustomId });
+  }, [listName, answers, customItems, nextCustomId]);
   const getAnswers = (key: string) => answers[key] ?? emptyAnswers;
 
   const activeItem = items[activeItemIndex];
@@ -473,8 +478,8 @@ function Checklist({
                         {exportMessage}
                       </p>
                       <p className="privacy-note text-center mt-3 mb-0">
-                        Your ratings stay in this browser session. Export a copy
-                        before leaving.
+                        Your ratings are saved in this browser only. Export a
+                        copy to back up or share.
                       </p>
                     </div>
                   </>
@@ -499,10 +504,29 @@ function Checklist({
 function App() {
   const [listName, setListName] = useState<string | null>(null);
   const [initial, setInitial] = useState<ImportedResults | null>(null);
+  const [saved, setSaved] = useState(loadProgress);
 
   if (listName === null) {
     return (
       <LandingPage
+        onDiscard={() => {
+          clearProgress();
+          setSaved(null);
+        }}
+        onResume={() => {
+          if (saved) {
+            setInitial(saved);
+            setListName(saved.listName);
+          }
+        }}
+        saved={
+          saved && {
+            listName: saved.listName,
+            ratedCount: Object.values(saved.answers).filter((roles) =>
+              Object.values(roles).some((level) => level !== null),
+            ).length,
+          }
+        }
         onImport={(text) => {
           const results = parseResults(text, categories);
           setInitial(results);
@@ -521,6 +545,8 @@ function App() {
       initial={initial}
       listName={listName}
       onNewList={() => {
+        clearProgress();
+        setSaved(null);
         setInitial(null);
         setListName(null);
       }}

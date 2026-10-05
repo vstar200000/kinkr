@@ -13,7 +13,7 @@ A small React app for working through a checklist of kinks and rating each one. 
 
 - **Import.** The landing page can also restore a previous **Export JSON** file: choose the file and click **Import** (no list name needed). The list name, ratings and custom items are restored; items that no longer match the current list are skipped.
 
-Ratings and custom items live in page state only. They are lost when you refresh or leave the page, so export a copy first.
+Progress is saved automatically in this browser (localStorage, nothing is sent anywhere). When you return, the landing page offers **Resume** (or **Discard**). **New list** and **Discard** clear the saved copy. Clearing site data or using another browser loses it, so export a copy to back up or share.
 
 ## Run locally
 
@@ -82,7 +82,6 @@ Each item has a `name`, its optional `description` and `image`, and a `rating` o
 
 ## TODO
 
-- [ ] Cookie saving/loading, so ratings and custom items persist across visits
 - [ ] "Extended list" item flag
 
 ## Validate
