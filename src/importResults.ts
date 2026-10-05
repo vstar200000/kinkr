@@ -56,7 +56,7 @@ export function parseResults(
   }
   if (
     !isRecord(data) ||
-    data.formatVersion !== 2 ||
+    data.formatVersion !== 3 ||
     !Array.isArray(data.categories)
   ) {
     throw new Error("That file is not a kinkr results export.");

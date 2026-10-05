@@ -274,7 +274,7 @@ function Checklist({
 
   function exportResults() {
     const exportData = {
-      formatVersion: 2,
+      formatVersion: 3,
       ...(listName && { listName }),
       ...(includeExtended && { includeExtended }),
       exportedAt: new Date().toISOString(),

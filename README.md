@@ -73,7 +73,7 @@ Downloads `kinkr-results-YYYY-MM-DD.png`. Each item is a row with its rating ico
 
 Downloads `kinkr-results-YYYY-MM-DD.json` containing:
 
-- `formatVersion`: currently `2`
+- `formatVersion`: currently `3`
 - `listName`: the list name, only present if one was entered
 - `includeExtended`: `true` if extended items were included (omitted otherwise)
 - `exportedAt`: an ISO timestamp
@@ -82,7 +82,6 @@ Downloads `kinkr-results-YYYY-MM-DD.json` containing:
 Each item has a `name`, its optional `description` and `image`, and a `rating` of `Hard Limit`, `Never`, `Ask Me`, `Willing`, `Love`, or `Crave`. In two-sided categories, `rating` is an object keyed by role, such as `{ "self": "Love", "partner": "Ask Me" }`. Custom items appear after the category's built-in items and include `"custom": true`.
 
 ## TODO
-
 
 ## Validate
 
