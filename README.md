@@ -65,7 +65,7 @@ Add one of these flags to a category to have every item in it rated twice on the
 
 ### PNG
 
-Downloads `kinkr-results-YYYY-MM-DD.png`. Each item is a row with its rating icon in the rating color (see [`src/ratings.ts`](./src/ratings.ts)), with an icon legend in the top right. Unrated slots show a small empty circle. Two-sided categories get two labeled icon columns. Categories flow into as many columns as make the image closest to square, and category and item order is preserved.
+Downloads `kinkr-results-YYYY-MM-DD.png`. Each item is a row with its rating icon in the rating color (see [`src/ratings.ts`](./src/ratings.ts)), with an icon legend in the top right. If you named the list, the name is the image title, with "kinkr results" in smaller text beneath it. Unrated slots show a small empty circle. Two-sided categories get two labeled icon columns. Categories flow into as many columns as make the image closest to square, and category and item order is preserved.
 
 ### JSON
 

@@ -218,6 +218,7 @@ function Checklist({
           ),
         })),
         ratingOptions,
+        listName,
       );
       await downloadCanvasPng(canvas, `kinkr-results-${date}.png`);
       setExportMessage("Your PNG results have been downloaded.");

@@ -54,6 +54,7 @@ function drawIcon(
 export function renderResultsCanvas(
   items: ExportItem[],
   ratingOptions: readonly ExportRating[],
+  listName = "",
 ) {
   const optionOf = (value: number | null) =>
     ratingOptions.find((option) => option.value === value) ?? null;
@@ -89,7 +90,8 @@ export function renderResultsCanvas(
   const COLUMN_GAP = 48;
   const GROUP_HEAD_H = 56;
   const GROUP_GAP = 16;
-  const titleWidth = textWidth(`700 30px ${FONT}`, "kinkr results");
+  const title = listName || "kinkr results";
+  const titleWidth = textWidth(`700 30px ${FONT}`, title);
 
   const blocks = groups.map((group) => ({
     group,
@@ -207,7 +209,12 @@ export function renderResultsCanvas(
   ctx.fillStyle = "#24212b";
   ctx.font = `700 30px ${FONT}`;
   ctx.textAlign = "left";
-  ctx.fillText("kinkr results", PAD, PAD + 8);
+  ctx.fillText(title, PAD, PAD + 8);
+  if (listName) {
+    ctx.fillStyle = "#6b6775";
+    ctx.font = `14px ${FONT}`;
+    ctx.fillText("kinkr results", PAD, PAD + 38);
+  }
 
   // Legend, top right, wrapping
   const legendX = WIDTH - PAD - legend.width;
