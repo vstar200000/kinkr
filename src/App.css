@@ -148,13 +148,39 @@
   transform: translateY(-1px);
 }
 
-.rating-hard-limit:hover,
-.rating-never:hover,
-.rating-ask:hover,
-.rating-willing:hover,
-.rating-love:hover,
-.rating-crave:hover {
-  opacity: 0.5;
+.rating-choice:hover:not(.is-selected) {
+  color: #24212b;
+}
+
+.rating-hard-limit:hover:not(.is-selected) {
+  background: rgb(0 0 0 / 50%);
+  border-color: rgb(0 0 0 / 50%);
+  color: #fff;
+}
+
+.rating-never:hover:not(.is-selected) {
+  background: rgb(146 0 0 / 50%);
+  border-color: rgb(146 0 0 / 50%);
+}
+
+.rating-ask:hover:not(.is-selected) {
+  background: rgb(253 253 104 / 50%);
+  border-color: rgb(253 253 104 / 50%);
+}
+
+.rating-willing:hover:not(.is-selected) {
+  background: rgb(255 165 0 / 50%);
+  border-color: rgb(255 165 0 / 50%);
+}
+
+.rating-love:hover:not(.is-selected) {
+  background: rgb(35 253 34 / 50%);
+  border-color: rgb(35 253 34 / 50%);
+}
+
+.rating-crave:hover:not(.is-selected) {
+  background: rgb(0 127 255 / 50%);
+  border-color: rgb(0 127 255 / 50%);
 }
 
 .rating-choice.is-selected {
