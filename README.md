@@ -26,7 +26,7 @@ Built with React, TypeScript, Vite, and Bootstrap.
 
 ## Update the item list
 
-Edit [`src/data/items.json`](./src/data/items.json). The list is grouped into categories; each item needs a `name` and may include a `description` and `image`.
+Edit [`src/data/items.json`](./src/data/items.json). The list is grouped into categories; each item needs a `name` and may include a `description`, an `image`, and `"extended": true`. Extended items are hidden (not shown, not in the menu, not exported) unless **Include extended items** is checked on the landing page. Add `"extended": true` to a category to flag all of its items at once; a category whose items are all extended is treated as extended too.
 
 ```json
 [
@@ -75,6 +75,7 @@ Downloads `kinkr-results-YYYY-MM-DD.json` containing:
 
 - `formatVersion`: currently `2`
 - `listName`: the list name, only present if one was entered
+- `includeExtended`: `true` if extended items were included (omitted otherwise)
 - `exportedAt`: an ISO timestamp
 - `categories`: each category with its two-sided flag (if any) and its items
 
@@ -82,7 +83,6 @@ Each item has a `name`, its optional `description` and `image`, and a `rating` o
 
 ## TODO
 
-- [ ] "Extended list" item flag
 
 ## Validate
 

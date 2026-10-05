@@ -29,12 +29,11 @@ export function loadProgress(): ImportedResults | null {
     if (!raw) return null;
     const data: unknown = JSON.parse(raw);
     if (typeof data !== "object" || data === null) return null;
-    const { listName, answers, customItems, nextCustomId } = data as Record<
-      string,
-      unknown
-    >;
+    const { listName, includeExtended, answers, customItems, nextCustomId } =
+      data as Record<string, unknown>;
     if (
       typeof listName !== "string" ||
+      (includeExtended !== undefined && typeof includeExtended !== "boolean") ||
       typeof nextCustomId !== "number" ||
       !Array.isArray(customItems) ||
       typeof answers !== "object" ||
@@ -63,6 +62,7 @@ export function loadProgress(): ImportedResults | null {
     }
     return {
       listName,
+      includeExtended: includeExtended === true,
       answers: answers as ImportedResults["answers"],
       customItems: customItems as ImportedResults["customItems"],
       nextCustomId,

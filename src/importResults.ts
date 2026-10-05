@@ -8,11 +8,13 @@ interface CategoryShape {
   "self-partner"?: boolean;
   "giving-receiving"?: boolean;
   "actor-subject"?: boolean;
-  items: { name: string }[];
+  extended?: boolean;
+  items: { name: string; extended?: boolean }[];
 }
 
 export interface ImportedResults {
   listName: string;
+  includeExtended: boolean;
   answers: Record<string, Record<Role, AnswerLevel | null>>;
   customItems: { id: number; category: string; name: string }[];
   nextCustomId: number;
@@ -60,18 +62,28 @@ export function parseResults(
     throw new Error("That file is not a kinkr results export.");
   }
 
+  const includeExtended = data.includeExtended === true;
   const baseKeys = new Map<string, string>();
   const categoryByName = new Map<string, CategoryShape>();
   let baseIndex = 0;
   for (const category of categories) {
-    categoryByName.set(category.category, category);
+    const visibleKeys: [string, string][] = [];
     for (const item of category.items) {
-      baseKeys.set(`${category.category}\n${item.name}`, `base:${baseIndex++}`);
+      const key = `base:${baseIndex++}`;
+      if (includeExtended || !(category.extended || item.extended)) {
+        visibleKeys.push([`${category.category}\n${item.name}`, key]);
+      }
+    }
+    // A category made up only of extended items is itself extended
+    if (visibleKeys.length > 0 || category.items.length === 0) {
+      categoryByName.set(category.category, category);
+      visibleKeys.forEach(([name, key]) => baseKeys.set(name, key));
     }
   }
 
   const result: ImportedResults = {
     listName: typeof data.listName === "string" ? data.listName : "",
+    includeExtended,
     answers: {},
     customItems: [],
     nextCustomId: 1,

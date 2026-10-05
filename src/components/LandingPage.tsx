@@ -1,7 +1,7 @@
 import { useState, type ChangeEvent, type FormEvent } from "react";
 
 interface LandingPageProps {
-  onStart: (listName: string) => void;
+  onStart: (listName: string, includeExtended: boolean) => void;
   onImport: (text: string) => void;
   saved: { listName: string; ratedCount: number } | null;
   onResume: () => void;
@@ -16,12 +16,13 @@ function LandingPage({
   onDiscard,
 }: LandingPageProps) {
   const [listName, setListName] = useState("");
+  const [includeExtended, setIncludeExtended] = useState(false);
   const [importFile, setImportFile] = useState<File | null>(null);
   const [importError, setImportError] = useState("");
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    onStart(listName.trim());
+    onStart(listName.trim(), includeExtended);
   }
 
   function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
@@ -90,6 +91,18 @@ function LandingPage({
             type="text"
             value={listName}
           />
+          <div className="form-check mb-3">
+            <input
+              checked={includeExtended}
+              className="form-check-input"
+              id="include-extended"
+              onChange={(event) => setIncludeExtended(event.target.checked)}
+              type="checkbox"
+            />
+            <label className="form-check-label" htmlFor="include-extended">
+              Include extended items
+            </label>
+          </div>
           <button className="btn btn-dark btn-lg w-100" type="submit">
             Start
           </button>

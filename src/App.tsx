@@ -15,6 +15,7 @@ export interface Category {
   "self-partner"?: boolean;
   "giving-receiving"?: boolean;
   "actor-subject"?: boolean;
+  extended?: boolean;
   items: ItemData[];
 }
 
@@ -22,6 +23,7 @@ export interface ItemData {
   name: string;
   description?: string;
   image?: string;
+  extended?: boolean;
 }
 
 const categories: Category[] = itemsData;
@@ -63,7 +65,10 @@ interface AppItem extends ItemData {
 const UNTITLED_NAME = "Untitled item";
 
 // Base items keep stable keys; custom items go after their category's own items
-function buildItems(customItems: CustomItem[]): AppItem[] {
+function buildItems(
+  customItems: CustomItem[],
+  includeExtended: boolean,
+): AppItem[] {
   let baseIndex = 0;
   return categories.flatMap(
     ({
@@ -71,15 +76,28 @@ function buildItems(customItems: CustomItem[]): AppItem[] {
       "self-partner": selfPartner = false,
       "giving-receiving": givingReceiving = false,
       "actor-subject": actorSubject = false,
+      extended: categoryExtended = false,
       items: categoryItems,
     }) => {
       const roles = getRoles(selfPartner, givingReceiving, actorSubject);
-      const base: AppItem[] = categoryItems.map((item) => ({
-        ...item,
-        category,
-        roles,
-        key: `base:${baseIndex++}`,
-      }));
+      // Keys count every item so they stay stable whether or not extended items are shown
+      const base: AppItem[] = categoryItems
+        .map((item) => ({
+          ...item,
+          category,
+          roles,
+          key: `base:${baseIndex++}`,
+        }))
+        .filter(
+          (item) => includeExtended || !(categoryExtended || item.extended),
+        );
+      // A flagged category, or one made up only of extended items, is extended
+      if (
+        (categoryExtended && !includeExtended) ||
+        (base.length === 0 && categoryItems.length > 0)
+      ) {
+        return [];
+      }
       const custom: AppItem[] = customItems
         .filter((customItem) => customItem.category === category)
         .map((customItem) => ({
@@ -118,10 +136,12 @@ function getLabel(answer: AnswerLevel | null) {
 
 function Checklist({
   listName,
+  includeExtended,
   initial,
   onNewList,
 }: {
   listName: string;
+  includeExtended: boolean;
   initial: ImportedResults | null;
   onNewList: () => void;
 }) {
@@ -141,11 +161,20 @@ function Checklist({
   );
   const [isNavOpen, setIsNavOpen] = useState(false);
 
-  const items = useMemo(() => buildItems(customItems), [customItems]);
+  const items = useMemo(
+    () => buildItems(customItems, includeExtended),
+    [customItems, includeExtended],
+  );
 
   useEffect(() => {
-    saveProgress({ listName, answers, customItems, nextCustomId });
-  }, [listName, answers, customItems, nextCustomId]);
+    saveProgress({
+      listName,
+      includeExtended,
+      answers,
+      customItems,
+      nextCustomId,
+    });
+  }, [listName, includeExtended, answers, customItems, nextCustomId]);
   const getAnswers = (key: string) => answers[key] ?? emptyAnswers;
 
   const activeItem = items[activeItemIndex];
@@ -187,7 +216,9 @@ function Checklist({
     setNextCustomId(id + 1);
     setJustAddedKey(key);
     setActiveItemIndex(
-      buildItems(updatedCustomItems).findIndex((item) => item.key === key),
+      buildItems(updatedCustomItems, includeExtended).findIndex(
+        (item) => item.key === key,
+      ),
     );
     setExportMessage("");
     setIsNavOpen(false);
@@ -245,39 +276,44 @@ function Checklist({
     const exportData = {
       formatVersion: 2,
       ...(listName && { listName }),
+      ...(includeExtended && { includeExtended }),
       exportedAt: new Date().toISOString(),
-      categories: categories.map((category) => {
-        const categoryDetails = {
-          category: category.category,
-          "self-partner": category["self-partner"],
-          "giving-receiving": category["giving-receiving"],
-          "actor-subject": category["actor-subject"],
-        };
-        return {
-          ...categoryDetails,
-          items: items
-            .filter((item) => item.category === categoryDetails.category)
-            .map((item) => {
-              const itemAnswers = getAnswers(item.key);
+      categories: categories
+        .filter((category) =>
+          items.some((item) => item.category === category.category),
+        )
+        .map((category) => {
+          const categoryDetails = {
+            category: category.category,
+            "self-partner": category["self-partner"],
+            "giving-receiving": category["giving-receiving"],
+            "actor-subject": category["actor-subject"],
+          };
+          return {
+            ...categoryDetails,
+            items: items
+              .filter((item) => item.category === categoryDetails.category)
+              .map((item) => {
+                const itemAnswers = getAnswers(item.key);
 
-              return {
-                name: item.name,
-                ...(item.description && { description: item.description }),
-                ...(item.image && { image: item.image }),
-                ...(item.custom && { custom: true }),
-                rating:
-                  item.roles.length > 1
-                    ? Object.fromEntries(
-                        item.roles.map((role) => [
-                          role,
-                          getLabel(itemAnswers[role]),
-                        ]),
-                      )
-                    : getLabel(itemAnswers.self),
-              };
-            }),
-        };
-      }),
+                return {
+                  name: item.name,
+                  ...(item.description && { description: item.description }),
+                  ...(item.image && { image: item.image }),
+                  ...(item.custom && { custom: true }),
+                  rating:
+                    item.roles.length > 1
+                      ? Object.fromEntries(
+                          item.roles.map((role) => [
+                            role,
+                            getLabel(itemAnswers[role]),
+                          ]),
+                        )
+                      : getLabel(itemAnswers.self),
+                };
+              }),
+          };
+        }),
     };
     const file = new Blob([JSON.stringify(exportData, null, 2)], {
       type: "application/json",
@@ -504,6 +540,7 @@ function Checklist({
 function App() {
   const [listName, setListName] = useState<string | null>(null);
   const [initial, setInitial] = useState<ImportedResults | null>(null);
+  const [includeExtended, setIncludeExtended] = useState(false);
   const [saved, setSaved] = useState(loadProgress);
 
   if (listName === null) {
@@ -516,6 +553,7 @@ function App() {
         onResume={() => {
           if (saved) {
             setInitial(saved);
+            setIncludeExtended(saved.includeExtended);
             setListName(saved.listName);
           }
         }}
@@ -530,10 +568,12 @@ function App() {
         onImport={(text) => {
           const results = parseResults(text, categories);
           setInitial(results);
+          setIncludeExtended(results.includeExtended);
           setListName(results.listName);
         }}
-        onStart={(name) => {
+        onStart={(name, extended) => {
           setInitial(null);
+          setIncludeExtended(extended);
           setListName(name);
         }}
       />
@@ -542,6 +582,7 @@ function App() {
 
   return (
     <Checklist
+      includeExtended={includeExtended}
       initial={initial}
       listName={listName}
       onNewList={() => {
