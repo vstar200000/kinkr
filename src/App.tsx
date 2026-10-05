@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
 import LandingPage from "./components/LandingPage.tsx";
+import RatingIcon from "./components/RatingIcon.tsx";
+import { ratingOptions } from "./ratings.ts";
 import "./App.css";
 import Item from "./components/item.tsx";
 import NavMenu from "./components/navMenu.tsx";
@@ -22,19 +24,7 @@ export interface ItemData {
 
 const categories: Category[] = itemsData;
 
-const ratingOptions = [
-  {
-    value: -1,
-    label: "Hard Limit",
-    className: "rating-hard-limit",
-    color: "#000000",
-  },
-  { value: 0, label: "Never", className: "rating-never", color: "#920000" },
-  { value: 1, label: "Ask Me", className: "rating-ask", color: "#fdfd68" },
-  { value: 2, label: "Willing", className: "rating-willing", color: "#ffa500" },
-  { value: 3, label: "Love", className: "rating-love", color: "#23fd22" },
-  { value: 4, label: "Crave", className: "rating-crave", color: "#007fff" },
-] as const;
+
 
 type AnswerLevel = (typeof ratingOptions)[number]["value"];
 
@@ -346,7 +336,7 @@ function Checklist({
               (role) =>
                 ratingOptions.find(
                   (option) => option.value === getAnswers(item.key)[role],
-                )?.color ?? null,
+                ) ?? null,
             ),
           }))}
           onClose={() => setIsNavOpen(false)}
@@ -420,7 +410,8 @@ function Checklist({
                                   }
                                   type="button"
                                 >
-                                  {option.label}
+                                  <RatingIcon option={option} size="1.1em" />
+                                  <span className="rating-label">{option.label}</span>
                                 </button>
                               ))}
                             </div>

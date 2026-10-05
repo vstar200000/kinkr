@@ -2,6 +2,7 @@ export interface ExportRating {
   value: number;
   label: string;
   color: string;
+  path: string;
 }
 
 export interface ExportItem {
@@ -22,32 +23,40 @@ function titleCase(text: string) {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
-function drawCircle(
+function drawIcon(
   ctx: CanvasRenderingContext2D,
   x: number,
   y: number,
-  color: string | null,
-  radius = RADIUS,
+  option: { color: string; path: string } | null,
+  size = RADIUS * 2,
 ) {
-  ctx.beginPath();
-  ctx.arc(x, y, radius, 0, Math.PI * 2);
-  if (color) {
-    ctx.fillStyle = color;
-    ctx.fill();
-    ctx.strokeStyle = "rgba(0,0,0,0.35)";
+  ctx.save();
+  ctx.translate(x - size / 2, y - size / 2);
+  ctx.scale(size / 16, size / 16);
+  if (option) {
+    const path = new Path2D(option.path);
+    ctx.fillStyle = option.color;
+    ctx.fill(path, "evenodd");
+    ctx.strokeStyle = "rgba(0,0,0,0.55)";
+    ctx.lineWidth = 0.7;
+    ctx.lineJoin = "round";
+    ctx.stroke(path);
   } else {
+    ctx.beginPath();
+    ctx.arc(8, 8, 3.5, 0, Math.PI * 2);
     ctx.strokeStyle = "#b5b5bd";
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
   }
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
+  ctx.restore();
 }
 
 export function renderResultsCanvas(
   items: ExportItem[],
   ratingOptions: readonly ExportRating[],
 ) {
-  const colorOf = (value: number | null) =>
-    ratingOptions.find((option) => option.value === value)?.color ?? null;
+  const optionOf = (value: number | null) =>
+    ratingOptions.find((option) => option.value === value) ?? null;
 
   const groups: {
     category: string;
@@ -59,7 +68,11 @@ export function renderResultsCanvas(
     if (last && last.category === item.category) {
       last.items.push(item);
     } else {
-      groups.push({ category: item.category, roles: item.roles, items: [item] });
+      groups.push({
+        category: item.category,
+        roles: item.roles,
+        items: [item],
+      });
     }
   }
 
@@ -151,9 +164,7 @@ export function renderResultsCanvas(
     const columns = splitColumns(count);
     const columnsWidth =
       columns.length * columnWidth + (columns.length - 1) * COLUMN_GAP;
-    const legend = layoutLegend(
-      Math.max(columnsWidth - titleWidth - 40, 260),
-    );
+    const legend = layoutLegend(Math.max(columnsWidth - titleWidth - 40, 260));
     const contentWidth = Math.ceil(
       Math.max(columnsWidth, titleWidth + 40 + legend.width),
     );
@@ -205,7 +216,7 @@ export function renderResultsCanvas(
     const cy = PAD + LEGEND_ROW_H / 2 + rowIndex * LEGEND_ROW_H;
     let x = legendX;
     for (const { option, width } of row) {
-      drawCircle(ctx, x + 8, cy, option.color, 8);
+      drawIcon(ctx, x + 8, cy, option, 18);
       ctx.fillStyle = "#24212b";
       ctx.textAlign = "left";
       ctx.fillText(option.label, x + 24, cy);
@@ -251,7 +262,7 @@ export function renderResultsCanvas(
         ctx.textAlign = "left";
         ctx.fillText(item.name, left, cy);
         item.ratings.forEach((rating, index) => {
-          drawCircle(ctx, circleX(index), cy, colorOf(rating));
+          drawIcon(ctx, circleX(index), cy, optionOf(rating));
         });
         y += ROW_H;
       }

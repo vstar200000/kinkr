@@ -340,13 +340,6 @@
   min-width: 1.5rem;
 }
 
-.nav-dot {
-  background: transparent;
-  border: 1.5px solid #b5b5bd;
-  border-radius: 50%;
-  height: 0.65rem;
-  width: 0.65rem;
-}
 .nav-item:hover {
   background: #f4e8ef;
 }
@@ -415,4 +408,18 @@
 .item-title-input {
   font-size: clamp(1.25rem, 3.5vw, 1.75rem);
   font-weight: 700;
+}
+
+.rating-icon {
+  flex: 0 0 auto;
+  vertical-align: -0.15em;
+}
+
+.rating-choice .rating-icon {
+  margin-right: 0.35rem;
+}
+
+.nav-item.is-active .rating-icon {
+  background: #fff;
+  border-radius: 3px;
 }

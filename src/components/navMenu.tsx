@@ -1,9 +1,11 @@
 import { useEffect, useRef } from "react";
+import type { RatingOption } from "../ratings.ts";
+import RatingIcon from "./RatingIcon.tsx";
 
 interface NavItem {
   name: string;
   category: string;
-  dots: (string | null)[];
+  dots: (RatingOption | null)[];
 }
 
 interface NavMenuProps {
@@ -84,18 +86,11 @@ function NavMenu({
                     type="button"
                   >
                     <span className="nav-dots" aria-hidden="true">
-                      {item.dots.map((color, dotIndex) => (
-                        <span
-                          className="nav-dot"
+                      {item.dots.map((rating, dotIndex) => (
+                        <RatingIcon
                           key={dotIndex}
-                          style={
-                            color
-                              ? {
-                                  background: color,
-                                  borderColor: "rgba(0,0,0,0.35)",
-                                }
-                              : undefined
-                          }
+                          option={rating}
+                          size="1rem"
                         />
                       ))}
                     </span>
