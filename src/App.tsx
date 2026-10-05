@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import LandingPage from "./components/LandingPage.tsx";
 import "./App.css";
 import Item from "./components/item.tsx";
 import NavMenu from "./components/navMenu.tsx";
@@ -125,7 +126,13 @@ function getLabel(answer: AnswerLevel | null) {
   );
 }
 
-function App() {
+function Checklist({
+  listName,
+  onNewList,
+}: {
+  listName: string;
+  onNewList: () => void;
+}) {
   const [activeItemIndex, setActiveItemIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, ItemAnswers>>({});
   const [customItems, setCustomItems] = useState<CustomItem[]>([]);
@@ -232,6 +239,7 @@ function App() {
   function exportResults() {
     const exportData = {
       formatVersion: 2,
+      ...(listName && { listName }),
       exportedAt: new Date().toISOString(),
       categories: categories.map((category) => {
         const categoryDetails = {
@@ -295,6 +303,18 @@ function App() {
             type="button"
           >
             kinkr<span className="brand-period">.</span>
+          </button>
+          {listName && <h1 className="list-name h5 mb-0">{listName}</h1>}
+          <button
+            className="btn btn-outline-dark"
+            onClick={() => {
+              if (window.confirm("Start a new list? Your current ratings will be lost unless you export them.")) {
+                onNewList();
+              }
+            }}
+            type="button"
+          >
+            New list
           </button>
           <div className="btn-group" role="group" aria-label="Export options">
             <button
@@ -466,6 +486,16 @@ function App() {
       </div>
     </main>
   );
+}
+
+function App() {
+  const [listName, setListName] = useState<string | null>(null);
+
+  if (listName === null) {
+    return <LandingPage onStart={setListName} />;
+  }
+
+  return <Checklist listName={listName} onNewList={() => setListName(null)} />;
 }
 
 export default App;

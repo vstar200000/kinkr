@@ -4,7 +4,7 @@ A small React app for working through a checklist of kinks and rating each one. 
 
 ## Using the app
 
-- **Rate items.** Each item has six ratings: **Hard Limit**, **Never**, **Ask Me**, **Willing**, **Love**, and **Crave**. Every item starts as **Ask Me**. After you choose a rating the app moves to the next item, and **Skip for now** moves on without changing anything.
+- **Name your list.** The landing page offers an optional list name. Leave it blank to start right away. A name is shown in the header and included in the JSON export. **New list** in the header returns to the landing page (after a confirmation) and clears all ratings and custom items.- **Rate items.** Each item has six ratings: **Hard Limit**, **Never**, **Ask Me**, **Willing**, **Love**, and **Crave**. Every item starts as **Ask Me**. After you choose a rating the app moves to the next item, and **Skip for now** moves on without changing anything.
 - **Two-sided categories.** Some categories ask for two ratings per item (for example **self** and **partner**). The app advances once both are chosen.
 - **Navigate.** The menu on the left lists every category and item, highlights where you are, and jumps to any item when clicked. Small dots next to each item show the rating you chose (one dot, or two for two-sided categories). On desktop the menu is always visible; on mobile, tap the **kinkr.** logo to open it.
 - **Add your own items.** Each category ends with a **+ New Item** button. Name the item on its card and rate it using that category's rules. Use **Remove this item** to delete it.
@@ -71,6 +71,7 @@ Downloads `kinkr-results-YYYY-MM-DD.png`. Each item is a row with a circle in it
 Downloads `kinkr-results-YYYY-MM-DD.json` containing:
 
 - `formatVersion`: currently `2`
+- `listName`: the list name, only present if one was entered
 - `exportedAt`: an ISO timestamp
 - `categories`: each category with its two-sided flag (if any) and its items
 
