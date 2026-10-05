@@ -1,15 +1,36 @@
-import { useState, type FormEvent } from "react";
+import { useState, type ChangeEvent, type FormEvent } from "react";
 
 interface LandingPageProps {
   onStart: (listName: string) => void;
+  onImport: (text: string) => void;
 }
 
-function LandingPage({ onStart }: LandingPageProps) {
+function LandingPage({ onStart, onImport }: LandingPageProps) {
   const [listName, setListName] = useState("");
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [importError, setImportError] = useState("");
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     onStart(listName.trim());
+  }
+
+  function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
+    setImportFile(event.target.files?.[0] ?? null);
+    setImportError("");
+  }
+
+  async function handleImport() {
+    if (!importFile) return;
+    try {
+      onImport(await importFile.text());
+    } catch (error) {
+      setImportError(
+        error instanceof Error
+          ? error.message
+          : "The file could not be imported.",
+      );
+    }
   }
 
   return (
@@ -38,6 +59,32 @@ function LandingPage({ onStart }: LandingPageProps) {
             Start
           </button>
         </form>
+        <hr className="my-4" />
+        <label className="form-label" htmlFor="import-file">
+          Or import a previous export
+        </label>
+        <div className="input-group">
+          <input
+            accept=".json,application/json"
+            className="form-control"
+            id="import-file"
+            onChange={handleFileChange}
+            type="file"
+          />
+          <button
+            className="btn btn-outline-dark"
+            disabled={!importFile}
+            onClick={handleImport}
+            type="button"
+          >
+            Import
+          </button>
+        </div>
+        {importError && (
+          <p className="text-danger mt-2 mb-0" role="alert">
+            {importError}
+          </p>
+        )}
       </div>
     </main>
   );

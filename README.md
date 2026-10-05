@@ -11,6 +11,8 @@ A small React app for working through a checklist of kinks and rating each one. 
 - **Add your own items.** Each category ends with a **+ New Item** button. Name the item on its card and rate it using that category's rules. Use **Remove this item** to delete it.
 - **Export.** **Export PNG** and **Export JSON** are in the header and can be used at any time.
 
+- **Import.** The landing page can also restore a previous **Export JSON** file: choose the file and click **Import** (no list name needed). The list name, ratings and custom items are restored; items that no longer match the current list are skipped.
+
 Ratings and custom items live in page state only. They are lost when you refresh or leave the page, so export a copy first.
 
 ## Run locally
@@ -80,7 +82,6 @@ Each item has a `name`, its optional `description` and `image`, and a `rating` o
 
 ## TODO
 
-- [ ] JSON import, to restore ratings from a previous export
 - [ ] Cookie saving/loading, so ratings and custom items persist across visits
 - [ ] "Extended list" item flag
 

@@ -6,6 +6,7 @@ import NavMenu from "./components/navMenu.tsx";
 import RatingIcon from "./components/RatingIcon.tsx";
 import itemsData from "./data/items.json";
 import { downloadCanvasPng, renderResultsCanvas } from "./exportImage.ts";
+import { parseResults, type ImportedResults } from "./importResults.ts";
 import { ratingOptions } from "./ratings.ts";
 
 export interface Category {
@@ -116,17 +117,27 @@ function getLabel(answer: AnswerLevel | null) {
 
 function Checklist({
   listName,
+  initial,
   onNewList,
 }: {
   listName: string;
+  initial: ImportedResults | null;
   onNewList: () => void;
 }) {
   const [activeItemIndex, setActiveItemIndex] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, ItemAnswers>>({});
-  const [customItems, setCustomItems] = useState<CustomItem[]>([]);
-  const [nextCustomId, setNextCustomId] = useState(1);
+  const [answers, setAnswers] = useState<Record<string, ItemAnswers>>(
+    initial?.answers ?? {},
+  );
+  const [customItems, setCustomItems] = useState<CustomItem[]>(
+    initial?.customItems ?? [],
+  );
+  const [nextCustomId, setNextCustomId] = useState(initial?.nextCustomId ?? 1);
   const [justAddedKey, setJustAddedKey] = useState<string | null>(null);
-  const [exportMessage, setExportMessage] = useState("");
+  const [exportMessage, setExportMessage] = useState(
+    initial?.skipped
+      ? `Imported. ${initial.skipped} item(s) in the file did not match this list and were skipped.`
+      : "",
+  );
   const [isNavOpen, setIsNavOpen] = useState(false);
 
   const items = useMemo(() => buildItems(customItems), [customItems]);
@@ -487,12 +498,34 @@ function Checklist({
 
 function App() {
   const [listName, setListName] = useState<string | null>(null);
+  const [initial, setInitial] = useState<ImportedResults | null>(null);
 
   if (listName === null) {
-    return <LandingPage onStart={setListName} />;
+    return (
+      <LandingPage
+        onImport={(text) => {
+          const results = parseResults(text, categories);
+          setInitial(results);
+          setListName(results.listName);
+        }}
+        onStart={(name) => {
+          setInitial(null);
+          setListName(name);
+        }}
+      />
+    );
   }
 
-  return <Checklist listName={listName} onNewList={() => setListName(null)} />;
+  return (
+    <Checklist
+      initial={initial}
+      listName={listName}
+      onNewList={() => {
+        setInitial(null);
+        setListName(null);
+      }}
+    />
+  );
 }
 
 export default App;
