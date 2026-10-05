@@ -46,14 +46,18 @@ For local images, put the files under `public/` and reference them from the root
 
 Add one of these flags to a category to have every item in it rated twice on the same scale:
 
-| Flag | Ratings |
-| --- | --- |
-| `"self-partner": true` | **self** and **partner** |
+| Flag                       | Ratings                      |
+| -------------------------- | ---------------------------- |
+| `"self-partner": true`     | **self** and **partner**     |
 | `"giving-receiving": true` | **giving** and **receiving** |
-| `"actor-subject": true` | **actor** and **subject** |
+| `"actor-subject": true`    | **actor** and **subject**    |
 
 ```json
-{ "category": "Examples", "self-partner": true, "items": [{ "name": "An item" }] }
+{
+  "category": "Examples",
+  "self-partner": true,
+  "items": [{ "name": "An item" }]
+}
 ```
 
 ## Export
@@ -77,6 +81,7 @@ Each item has a `name`, its optional `description` and `image`, and a `rating` o
 - [ ] Shape icons on ratings for accessibility, so ratings are not distinguished by color alone
 - [ ] JSON import, to restore ratings from a previous export
 - [ ] Cookie saving/loading, so ratings and custom items persist across visits
+- [ ] "Extended list" item flag
 
 ## Validate
 
