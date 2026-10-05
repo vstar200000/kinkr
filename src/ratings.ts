@@ -12,14 +12,14 @@ export const ratingOptions = [
     label: "Never",
     className: "rating-never",
     color: "#920000",
-    path: "M7.022 1.566a1.13 1.13 0 0 1 1.96 0l6.857 11.667c.457.778-.092 1.767-.98 1.767H1.144c-.889 0-1.437-.99-.98-1.767z",
+    path: "M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2z",
   },
   {
     value: 1,
     label: "Ask Me",
     className: "rating-ask",
     color: "#fdfd68",
-    path: "M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2z",
+    path: "M7.022 1.566a1.13 1.13 0 0 1 1.96 0l6.857 11.667c.457.778-.092 1.767-.98 1.767H1.144c-.889 0-1.437-.99-.98-1.767z",
   },
   {
     value: 2,
