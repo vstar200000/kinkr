@@ -1,12 +1,12 @@
 import { useMemo, useState } from "react";
-import LandingPage from "./components/LandingPage.tsx";
-import RatingIcon from "./components/RatingIcon.tsx";
-import { ratingOptions } from "./ratings.ts";
 import "./App.css";
 import Item from "./components/item.tsx";
+import LandingPage from "./components/LandingPage.tsx";
 import NavMenu from "./components/navMenu.tsx";
+import RatingIcon from "./components/RatingIcon.tsx";
 import itemsData from "./data/items.json";
 import { downloadCanvasPng, renderResultsCanvas } from "./exportImage.ts";
+import { ratingOptions } from "./ratings.ts";
 
 export interface Category {
   category: string;
@@ -23,8 +23,6 @@ export interface ItemData {
 }
 
 const categories: Category[] = itemsData;
-
-
 
 type AnswerLevel = (typeof ratingOptions)[number]["value"];
 
@@ -299,7 +297,11 @@ function Checklist({
           <button
             className="btn btn-outline-dark"
             onClick={() => {
-              if (window.confirm("Start a new list? Your current ratings will be lost unless you export them.")) {
+              if (
+                window.confirm(
+                  "Start a new list? Your current ratings will be lost unless you export them.",
+                )
+              ) {
                 onNewList();
               }
             }}
@@ -410,9 +412,12 @@ function Checklist({
                                     handleAnswerClick(role, option.value)
                                   }
                                   type="button"
+                                  title={option.description}
                                 >
                                   <RatingIcon option={option} size="1.1em" />
-                                  <span className="rating-label">{option.label}</span>
+                                  <span className="rating-label">
+                                    {option.label}
+                                  </span>
                                 </button>
                               ))}
                             </div>
