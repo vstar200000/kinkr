@@ -107,6 +107,8 @@ Each item has a `name`, its optional `description` and `image`, and a `rating` o
 - [ ] Items to be removed due to redundancy:
       "Leather" from Particular Actions/Elements
 - [ ] Clarify "Cum Placement" category.
+- [ ] Split "Primal" into "Hunter" and "Prey".
+- [ ] Consider "Dynamics" category.
 
 ## Validate
 
