@@ -24,6 +24,18 @@ npm run dev
 
 Built with React, TypeScript, Vite, and Bootstrap.
 
+## Deploy to GitHub Pages
+
+The `main` branch is deployed automatically to [https://vstar200000.github.io/kinkr/](https://vstar200000.github.io/kinkr/) by the GitHub Actions workflow in `.github/workflows/pages.yml`. To enable it:
+
+1. In the repository, open **Settings > Pages**.
+2. Under **Build and deployment**, set **Source** to **GitHub Actions**.
+3. Push or merge your changes to `main`.
+4. In **Actions**, wait for **Deploy to GitHub Pages** to finish successfully.
+5. Open [https://vstar200000.github.io/kinkr/](https://vstar200000.github.io/kinkr/).
+
+The workflow builds the site and deploys `dist`; there is no need to commit the generated build directory.
+
 ## Update the item list
 
 Edit [`src/data/items.json`](./src/data/items.json). The list is grouped into categories; each item needs a `name` and may include a `description`, an `image`, and `"extended": true`. Extended items are hidden (not shown, not in the menu, not exported) unless **Include extended items** is checked on the landing page. Add `"extended": true` to a category to flag all of its items at once; a category whose items are all extended is treated as extended too.
