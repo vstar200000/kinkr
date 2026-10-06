@@ -95,6 +95,19 @@ Each item has a `name`, its optional `description` and `image`, and a `rating` o
 
 ## TODO
 
+- [ ] Add % complete display.
+- [ ] Don't default highlight "Ask Me". Only set as default if the user skips.
+- [ ] Fill out the descriptions for every item, even on the extended list.
+- [ ] Implement an "all done!" page after every item is answered (keep the navigation visible)
+- [ ] Build unit and integration tests.
+- [ ] The page height should be limited to the view height.
+- [ ] "Multiple x partners" items need to be reworked. The don't make sense being self-partner.
+- [ ] Items that don't make sense to be actor-subject:
+      "Condoms", "Docking", "Frotting", "Mutual Masturbation", "Smoking", "Socks/Stockings", "Tribadism/Scissoring", "Underwear"
+- [ ] Items to be removed due to redundancy:
+      "Leather" from Particular Actions/Elements
+- [ ] Clarify "Cum Placement" category.
+
 ## Validate
 
 ```sh
