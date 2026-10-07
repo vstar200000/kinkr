@@ -145,13 +145,17 @@ function Checklist({
   includeExtended,
   initial,
   onNewList,
+  onListNameChange,
 }: {
   listName: string;
   includeExtended: boolean;
   initial: ImportedResults | null;
   onNewList: () => void;
+  onListNameChange: (name: string) => void;
 }) {
   const [activeItemIndex, setActiveItemIndex] = useState(0);
+  const [isEditingListName, setIsEditingListName] = useState(!listName);
+  const [editedListName, setEditedListName] = useState(listName);
   const [answers, setAnswers] = useState<Record<string, ItemAnswers>>(
     initial?.answers ?? {},
   );
@@ -199,6 +203,12 @@ function Checklist({
       progressDisplay === "fraction" ? "percent" : "fraction";
     setProgressDisplay(nextDisplay);
     saveProgressDisplay(nextDisplay);
+  }
+
+  function saveListName() {
+    const name = editedListName.trim();
+    onListNameChange(name);
+    setIsEditingListName(name.length === 0);
   }
 
   function handleAnswerClick(role: Role, answer: AnswerLevel) {
@@ -359,7 +369,41 @@ function Checklist({
           >
             kinkr<span className="brand-period">.</span>
           </button>
-          {listName && <h1 className="list-name h5 mb-0">{listName}</h1>}
+          <h1 className="list-name h5 mb-0">
+            {isEditingListName ? (
+              <input
+                aria-label="List name"
+                autoFocus
+                className="form-control form-control-sm"
+                maxLength={60}
+                onBlur={saveListName}
+                onChange={(event) => setEditedListName(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    saveListName();
+                  } else if (event.key === "Escape") {
+                    setEditedListName(listName);
+                    setIsEditingListName(!listName);
+                  }
+                }}
+                type="text"
+                value={editedListName}
+              />
+            ) : (
+              <button
+                aria-label={`Edit list name: ${listName}`}
+                className="list-name-button"
+                onClick={() => {
+                  setEditedListName(listName);
+                  setIsEditingListName(true);
+                }}
+                type="button"
+              >
+                {listName}
+              </button>
+            )}
+          </h1>
           <button
             className="btn btn-outline-dark"
             onClick={() => {
@@ -612,6 +656,7 @@ function App() {
       includeExtended={includeExtended}
       initial={initial}
       listName={listName}
+      onListNameChange={setListName}
       onNewList={() => {
         clearProgress();
         setSaved(null);

@@ -26,6 +26,24 @@
   padding: 0.65rem 1.1rem;
 }
 
+.list-name-button {
+  background: none;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  padding: 0;
+}
+
+.list-name-button:hover {
+  text-decoration: underline;
+}
+
+.list-name-button:focus-visible {
+  border-radius: 0.2rem;
+  box-shadow: 0 0 0 0.2rem rgb(161 44 104 / 25%);
+  outline: 0;
+}
+
 .eyebrow {
   color: var(--bs-danger);
   font-size: 0.75rem;
