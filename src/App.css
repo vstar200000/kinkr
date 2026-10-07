@@ -89,6 +89,15 @@
   padding: 0.35rem 0.65rem;
 }
 
+.complete-screen {
+  margin-block: auto;
+}
+
+.unanswered-notice {
+  color: #8a4a00;
+  font-weight: 600;
+}
+
 .progress-tracker {
   background: none;
   border: 0;
@@ -379,8 +388,26 @@
   min-width: 1.5rem;
 }
 
+.nav-dot {
+  display: inline-flex;
+}
+
+.nav-dot.is-unanswered circle {
+  stroke: #c46b00;
+  stroke-width: 2;
+}
+
 .nav-item:hover {
   background: #f4e8ef;
+}
+
+.nav-item.has-unanswered:not(.is-active) {
+  background: #fff4df;
+  box-shadow: inset 0.2rem 0 #d98500;
+}
+
+.nav-item.has-unanswered:not(.is-active):hover {
+  background: #ffebc5;
 }
 
 .nav-item.is-active {

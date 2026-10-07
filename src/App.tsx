@@ -154,6 +154,7 @@ function Checklist({
   onListNameChange: (name: string) => void;
 }) {
   const [activeItemIndex, setActiveItemIndex] = useState(0);
+  const [showComplete, setShowComplete] = useState(false);
   const [isEditingListName, setIsEditingListName] = useState(!listName);
   const [editedListName, setEditedListName] = useState(listName);
   const [answers, setAnswers] = useState<Record<string, ItemAnswers>>(
@@ -194,13 +195,29 @@ function Checklist({
   const ratedCount = items.filter((item) =>
     item.roles.every((role) => getAnswers(item.key)[role] !== null),
   ).length;
+  const unansweredItems = items.filter((item) =>
+    item.roles.some((role) => getAnswers(item.key)[role] === null),
+  );
+  const unansweredOptionCount = unansweredItems.reduce(
+    (count, item) =>
+      count +
+      item.roles.filter((role) => getAnswers(item.key)[role] === null).length,
+    0,
+  );
   const isActiveItemRated = activeRoles.every(
     (role) => activeAnswers[role] !== null,
   );
 
+  function advanceOrComplete() {
+    if (activeItemIndex === items.length - 1) {
+      setShowComplete(true);
+    } else {
+      setActiveItemIndex((currentIndex) => currentIndex + 1);
+    }
+  }
+
   function toggleProgressDisplay() {
-    const nextDisplay =
-      progressDisplay === "fraction" ? "percent" : "fraction";
+    const nextDisplay = progressDisplay === "fraction" ? "percent" : "fraction";
     setProgressDisplay(nextDisplay);
     saveProgressDisplay(nextDisplay);
   }
@@ -222,9 +239,7 @@ function Checklist({
     if (
       activeRoles.every((activeRole) => updatedAnswers[activeRole] !== null)
     ) {
-      setActiveItemIndex((currentIndex) =>
-        Math.min(currentIndex + 1, items.length - 1),
-      );
+      advanceOrComplete();
     }
   }
 
@@ -242,9 +257,7 @@ function Checklist({
       return { ...currentAnswers, [activeItem.key]: skippedAnswers };
     });
     setExportMessage("");
-    setActiveItemIndex((currentIndex) =>
-      Math.min(currentIndex + 1, items.length - 1),
-    );
+    advanceOrComplete();
   }
 
   function handleAddItem(category: string) {
@@ -257,6 +270,7 @@ function Checklist({
 
     setCustomItems(updatedCustomItems);
     setNextCustomId(id + 1);
+    setShowComplete(false);
     setJustAddedKey(key);
     setActiveItemIndex(
       buildItems(updatedCustomItems, includeExtended).findIndex(
@@ -289,6 +303,7 @@ function Checklist({
 
   function handleNavSelect(index: number) {
     setActiveItemIndex(index);
+    setShowComplete(false);
     setExportMessage("");
     setIsNavOpen(false);
   }
@@ -459,7 +474,7 @@ function Checklist({
 
       <div className="app-body">
         <NavMenu
-          activeIndex={activeItemIndex}
+          activeIndex={showComplete ? -1 : activeItemIndex}
           isOpen={isNavOpen}
           items={items.map((item) => ({
             name: item.name,
@@ -489,7 +504,51 @@ function Checklist({
           <div className="container">
             <div className="row justify-content-center">
               <div className="col-12 col-lg-9 col-xl-8">
-                {activeItem ? (
+                {showComplete ? (
+                  <div className="complete-screen empty-state text-center p-5">
+                    <h2 className="h3">You're all done!</h2>
+                    <p className="text-secondary">
+                      Export your results as a PNG to save and share them.
+                    </p>
+                    <button
+                      className="btn btn-dark"
+                      onClick={exportPng}
+                      type="button"
+                    >
+                      Export PNG to share
+                    </button>
+                    {unansweredOptionCount > 0 && (
+                      <>
+                        <p
+                          className="unanswered-notice mt-4 mb-2"
+                          role="status"
+                        >
+                          {unansweredOptionCount} rating
+                          {unansweredOptionCount === 1 ? "" : "s"} unanswered.
+                          Unanswered items will show up as "Ask Me" in the image
+                          export!
+                        </p>
+                        <button
+                          className="btn btn-link navigation-button"
+                          onClick={() =>
+                            handleNavSelect(items.indexOf(unansweredItems[0]))
+                          }
+                          type="button"
+                        >
+                          Review unanswered items
+                        </button>
+                      </>
+                    )}
+                    {exportMessage && (
+                      <p
+                        aria-live="polite"
+                        className="export-message mt-3 mb-0"
+                      >
+                        {exportMessage}
+                      </p>
+                    )}
+                  </div>
+                ) : activeItem ? (
                   <>
                     <div className="d-flex justify-content-between align-items-end mb-3">
                       <div>
@@ -584,18 +643,18 @@ function Checklist({
                         </button>
                         <button
                           className="btn btn-link navigation-button"
-                          disabled={activeItemIndex === items.length - 1}
                           onClick={
                             isActiveItemRated
-                              ? () =>
-                                  setActiveItemIndex((index) =>
-                                    Math.min(index + 1, items.length - 1),
-                                  )
+                              ? advanceOrComplete
                               : handleSkipForNow
                           }
                           type="button"
                         >
-                          {isActiveItemRated ? "Next item" : "Skip for now"}
+                          {isActiveItemRated
+                            ? activeItemIndex === items.length - 1
+                              ? "Finish"
+                              : "Next item"
+                            : "Skip for now"}
                         </button>
                       </nav>
 
