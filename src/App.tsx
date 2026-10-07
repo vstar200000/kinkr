@@ -5,8 +5,13 @@ import LandingPage from "./components/LandingPage.tsx";
 import NavMenu from "./components/navMenu.tsx";
 import RatingIcon from "./components/RatingIcon.tsx";
 import itemsData from "./data/items.json";
+import itemsV3Data from "./data/items-v3.json";
 import { downloadCanvasPng, renderResultsCanvas } from "./exportImage.ts";
-import { parseResults, type ImportedResults } from "./importResults.ts";
+import {
+  parseResults,
+  type ImportedResults,
+  type ListVersion,
+} from "./importResults.ts";
 import { ratingOptions } from "./ratings.ts";
 import {
   clearProgress,
@@ -18,6 +23,7 @@ import {
 
 export interface Category {
   category: string;
+  description?: string;
   "self-partner"?: boolean;
   "giving-receiving"?: boolean;
   "actor-subject"?: boolean;
@@ -32,7 +38,10 @@ export interface ItemData {
   extended?: boolean;
 }
 
-const categories: Category[] = itemsData;
+const categoriesByVersion: Record<ListVersion, Category[]> = {
+  v2: itemsData,
+  v3: itemsV3Data,
+};
 
 type AnswerLevel = (typeof ratingOptions)[number]["value"];
 
@@ -63,6 +72,7 @@ interface CustomItem {
 interface AppItem extends ItemData {
   key: string;
   category: string;
+  categoryDescription?: string;
   roles: Role[];
   custom?: boolean;
   rawName?: string;
@@ -74,6 +84,7 @@ const UNTITLED_NAME = "Untitled item";
 function buildItems(
   customItems: CustomItem[],
   includeExtended: boolean,
+  categories: Category[],
 ): AppItem[] {
   let baseIndex = 0;
   return categories.flatMap(
@@ -83,6 +94,7 @@ function buildItems(
       "giving-receiving": givingReceiving = false,
       "actor-subject": actorSubject = false,
       extended: categoryExtended = false,
+      description: categoryDescription,
       items: categoryItems,
     }) => {
       const roles = getRoles(selfPartner, givingReceiving, actorSubject);
@@ -91,6 +103,7 @@ function buildItems(
         .map((item) => ({
           ...item,
           category,
+          categoryDescription,
           roles,
           key: `base:${baseIndex++}`,
         }))
@@ -110,6 +123,7 @@ function buildItems(
           name: customItem.name.trim() || UNTITLED_NAME,
           rawName: customItem.name,
           category,
+          categoryDescription,
           roles,
           key: `custom:${customItem.id}`,
           custom: true,
@@ -142,12 +156,16 @@ function getLabel(answer: AnswerLevel | null) {
 
 function Checklist({
   listName,
+  listVersion,
+  categories,
   includeExtended,
   initial,
   onNewList,
   onListNameChange,
 }: {
   listName: string;
+  listVersion: ListVersion;
+  categories: Category[];
   includeExtended: boolean;
   initial: ImportedResults | null;
   onNewList: () => void;
@@ -174,19 +192,20 @@ function Checklist({
   const [progressDisplay, setProgressDisplay] = useState(loadProgressDisplay);
 
   const items = useMemo(
-    () => buildItems(customItems, includeExtended),
-    [customItems, includeExtended],
+    () => buildItems(customItems, includeExtended, categories),
+    [categories, customItems, includeExtended],
   );
 
   useEffect(() => {
     saveProgress({
       listName,
       includeExtended,
+      listVersion,
       answers,
       customItems,
       nextCustomId,
     });
-  }, [listName, includeExtended, answers, customItems, nextCustomId]);
+  }, [listName, listVersion, includeExtended, answers, customItems, nextCustomId]);
   const getAnswers = (key: string) => answers[key] ?? emptyAnswers;
 
   const activeItem = items[activeItemIndex];
@@ -273,7 +292,7 @@ function Checklist({
     setShowComplete(false);
     setJustAddedKey(key);
     setActiveItemIndex(
-      buildItems(updatedCustomItems, includeExtended).findIndex(
+      buildItems(updatedCustomItems, includeExtended, categories).findIndex(
         (item) => item.key === key,
       ),
     );
@@ -553,6 +572,11 @@ function Checklist({
                     <div className="d-flex justify-content-between align-items-end mb-3">
                       <div>
                         <p className="eyebrow mb-1">{activeItem.category}</p>
+                        {activeItem.categoryDescription && (
+                          <p className="text-secondary small mb-0">
+                            {activeItem.categoryDescription}
+                          </p>
+                        )}
                       </div>
                       {ratedCount === items.length && (
                         <span className="complete-badge">All rated</span>
@@ -691,6 +715,9 @@ function Checklist({
 function App() {
   const [listName, setListName] = useState<string | null>(null);
   const [initial, setInitial] = useState<ImportedResults | null>(null);
+  const [listVersion, setListVersion] = useState<ListVersion>(
+    () => loadProgress()?.listVersion ?? "v2",
+  );
   const [includeExtended, setIncludeExtended] = useState(false);
   const [saved, setSaved] = useState(loadProgress);
 
@@ -704,6 +731,7 @@ function App() {
         onResume={() => {
           if (saved) {
             setInitial(saved);
+            setListVersion(saved.listVersion);
             setIncludeExtended(saved.includeExtended);
             setListName(saved.listName);
           }
@@ -716,14 +744,20 @@ function App() {
             ).length,
           }
         }
-        onImport={(text) => {
-          const results = parseResults(text, categories);
+        onImport={(text, version) => {
+          const results = parseResults(
+            text,
+            categoriesByVersion[version],
+            version,
+          );
           setInitial(results);
-          setIncludeExtended(results.includeExtended);
+          setListVersion(version);
+          setIncludeExtended(version === "v2" && results.includeExtended);
           setListName(results.listName);
         }}
-        onStart={(name, extended) => {
+        onStart={(name, version, extended) => {
           setInitial(null);
+          setListVersion(version);
           setIncludeExtended(extended);
           setListName(name);
         }}
@@ -733,9 +767,11 @@ function App() {
 
   return (
     <Checklist
+      categories={categoriesByVersion[listVersion]}
       includeExtended={includeExtended}
       initial={initial}
       listName={listName}
+      listVersion={listVersion}
       onListNameChange={setListName}
       onNewList={() => {
         clearProgress();

@@ -13,6 +13,7 @@ interface CategoryShape {
 }
 
 export interface ImportedResults {
+  listVersion: ListVersion;
   listName: string;
   includeExtended: boolean;
   answers: Record<string, Record<Role, AnswerLevel | null>>;
@@ -20,6 +21,8 @@ export interface ImportedResults {
   nextCustomId: number;
   skipped: number;
 }
+
+export type ListVersion = "v2" | "v3";
 
 const ALL_ROLES: Role[] = [
   "self",
@@ -47,6 +50,7 @@ function levelOf(label: unknown): AnswerLevel | null {
 export function parseResults(
   text: string,
   categories: CategoryShape[],
+  listVersion: ListVersion,
 ): ImportedResults {
   let data: unknown;
   try {
@@ -82,6 +86,7 @@ export function parseResults(
   }
 
   const result: ImportedResults = {
+    listVersion,
     listName: typeof data.listName === "string" ? data.listName : "",
     includeExtended,
     answers: {},

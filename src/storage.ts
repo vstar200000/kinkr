@@ -48,10 +48,19 @@ export function loadProgress(): ImportedResults | null {
     if (!raw) return null;
     const data: unknown = JSON.parse(raw);
     if (typeof data !== "object" || data === null) return null;
-    const { listName, includeExtended, answers, customItems, nextCustomId } =
-      data as Record<string, unknown>;
+    const {
+      listName,
+      listVersion,
+      includeExtended,
+      answers,
+      customItems,
+      nextCustomId,
+    } = data as Record<string, unknown>;
     if (
       typeof listName !== "string" ||
+      (listVersion !== undefined &&
+        listVersion !== "v2" &&
+        listVersion !== "v3") ||
       (includeExtended !== undefined && typeof includeExtended !== "boolean") ||
       typeof nextCustomId !== "number" ||
       !Array.isArray(customItems) ||
@@ -80,6 +89,7 @@ export function loadProgress(): ImportedResults | null {
       }
     }
     return {
+      listVersion: listVersion === "v3" ? "v3" : "v2",
       listName,
       includeExtended: includeExtended === true,
       answers: answers as ImportedResults["answers"],

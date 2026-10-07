@@ -1,8 +1,13 @@
 import { useState, type ChangeEvent, type FormEvent } from "react";
+import type { ListVersion } from "../importResults.ts";
 
 interface LandingPageProps {
-  onStart: (listName: string, includeExtended: boolean) => void;
-  onImport: (text: string) => void;
+  onStart: (
+    listName: string,
+    listVersion: ListVersion,
+    includeExtended: boolean,
+  ) => void;
+  onImport: (text: string, listVersion: ListVersion) => void;
   saved: { listName: string; ratedCount: number } | null;
   onResume: () => void;
   onDiscard: () => void;
@@ -16,13 +21,18 @@ function LandingPage({
   onDiscard,
 }: LandingPageProps) {
   const [listName, setListName] = useState("");
+  const [listVersion, setListVersion] = useState<ListVersion>("v2");
   const [includeExtended, setIncludeExtended] = useState(false);
   const [importFile, setImportFile] = useState<File | null>(null);
   const [importError, setImportError] = useState("");
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    onStart(listName.trim(), includeExtended);
+    onStart(
+      listName.trim(),
+      listVersion,
+      listVersion === "v2" && includeExtended,
+    );
   }
 
   function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
@@ -33,7 +43,7 @@ function LandingPage({
   async function handleImport() {
     if (!importFile) return;
     try {
-      onImport(await importFile.text());
+      onImport(await importFile.text(), listVersion);
     } catch (error) {
       setImportError(
         error instanceof Error
@@ -79,6 +89,20 @@ function LandingPage({
           </div>
         )}
         <form onSubmit={handleSubmit}>
+          <label className="form-label" htmlFor="list-version">
+            Item list
+          </label>
+          <select
+            className="form-select form-select-lg mb-3"
+            id="list-version"
+            onChange={(event) =>
+              setListVersion(event.target.value === "v3" ? "v3" : "v2")
+            }
+            value={listVersion}
+          >
+            <option value="v2">V2</option>
+            <option value="v3">V3</option>
+          </select>
           <label className="form-label" htmlFor="list-name">
             List name <span className="text-secondary">(optional)</span>
           </label>
@@ -91,18 +115,20 @@ function LandingPage({
             type="text"
             value={listName}
           />
-          <div className="form-check mb-3">
-            <input
-              checked={includeExtended}
-              className="form-check-input"
-              id="include-extended"
-              onChange={(event) => setIncludeExtended(event.target.checked)}
-              type="checkbox"
-            />
-            <label className="form-check-label" htmlFor="include-extended">
-              Include extended items
-            </label>
-          </div>
+          {listVersion === "v2" && (
+            <div className="form-check mb-3">
+              <input
+                checked={includeExtended}
+                className="form-check-input"
+                id="include-extended"
+                onChange={(event) => setIncludeExtended(event.target.checked)}
+                type="checkbox"
+              />
+              <label className="form-check-label" htmlFor="include-extended">
+                Include extended items
+              </label>
+            </div>
+          )}
           <button className="btn btn-dark btn-lg w-100" type="submit">
             Start
           </button>
