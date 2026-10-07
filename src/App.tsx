@@ -127,10 +127,10 @@ const emptyAnswers: ItemAnswers = {
   actor: null,
   subject: null,
 };
-const DEFAULT_ANSWER: AnswerLevel = 1;
+const SKIP_ANSWER: AnswerLevel = 1;
 
 function getEffectiveAnswer(answer: AnswerLevel | null) {
-  return answer ?? DEFAULT_ANSWER;
+  return answer ?? SKIP_ANSWER;
 }
 
 function getLabel(answer: AnswerLevel | null) {
@@ -226,6 +226,25 @@ function Checklist({
         Math.min(currentIndex + 1, items.length - 1),
       );
     }
+  }
+
+  function handleSkipForNow() {
+    if (!activeItem) return;
+    setAnswers((currentAnswers) => {
+      const skippedAnswers = {
+        ...(currentAnswers[activeItem.key] ?? emptyAnswers),
+      };
+      activeRoles.forEach((role) => {
+        if (skippedAnswers[role] === null) {
+          skippedAnswers[role] = SKIP_ANSWER;
+        }
+      });
+      return { ...currentAnswers, [activeItem.key]: skippedAnswers };
+    });
+    setExportMessage("");
+    setActiveItemIndex((currentIndex) =>
+      Math.min(currentIndex + 1, items.length - 1),
+    );
   }
 
   function handleAddItem(category: string) {
@@ -526,10 +545,9 @@ function Checklist({
                               {ratingOptions.map((option) => (
                                 <button
                                   aria-pressed={
-                                    getEffectiveAnswer(activeAnswers[role]) ===
-                                    option.value
+                                    activeAnswers[role] === option.value
                                   }
-                                  className={`btn rating-choice ${option.className}${getEffectiveAnswer(activeAnswers[role]) === option.value ? " is-selected" : ""}`}
+                                  className={`btn rating-choice ${option.className}${activeAnswers[role] === option.value ? " is-selected" : ""}`}
                                   key={option.value}
                                   onClick={() =>
                                     handleAnswerClick(role, option.value)
@@ -567,10 +585,13 @@ function Checklist({
                         <button
                           className="btn btn-link navigation-button"
                           disabled={activeItemIndex === items.length - 1}
-                          onClick={() =>
-                            setActiveItemIndex((index) =>
-                              Math.min(index + 1, items.length - 1),
-                            )
+                          onClick={
+                            isActiveItemRated
+                              ? () =>
+                                  setActiveItemIndex((index) =>
+                                    Math.min(index + 1, items.length - 1),
+                                  )
+                              : handleSkipForNow
                           }
                           type="button"
                         >
