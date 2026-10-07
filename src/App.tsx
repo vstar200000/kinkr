@@ -8,7 +8,13 @@ import itemsData from "./data/items.json";
 import { downloadCanvasPng, renderResultsCanvas } from "./exportImage.ts";
 import { parseResults, type ImportedResults } from "./importResults.ts";
 import { ratingOptions } from "./ratings.ts";
-import { clearProgress, loadProgress, saveProgress } from "./storage.ts";
+import {
+  clearProgress,
+  loadProgress,
+  loadProgressDisplay,
+  saveProgress,
+  saveProgressDisplay,
+} from "./storage.ts";
 
 export interface Category {
   category: string;
@@ -160,6 +166,7 @@ function Checklist({
       : "",
   );
   const [isNavOpen, setIsNavOpen] = useState(false);
+  const [progressDisplay, setProgressDisplay] = useState(loadProgressDisplay);
 
   const items = useMemo(
     () => buildItems(customItems, includeExtended),
@@ -186,6 +193,13 @@ function Checklist({
   const isActiveItemRated = activeRoles.every(
     (role) => activeAnswers[role] !== null,
   );
+
+  function toggleProgressDisplay() {
+    const nextDisplay =
+      progressDisplay === "fraction" ? "percent" : "fraction";
+    setProgressDisplay(nextDisplay);
+    saveProgressDisplay(nextDisplay);
+  }
 
   function handleAnswerClick(role: Role, answer: AnswerLevel) {
     const updatedAnswers = { ...activeAnswers, [role]: answer };
@@ -420,6 +434,19 @@ function Checklist({
                       </div>
                       {ratedCount === items.length && (
                         <span className="complete-badge">All rated</span>
+                      )}
+                      {ratedCount < items.length && (
+                        <button
+                          aria-label={`Progress: ${ratedCount} of ${items.length} items rated, shown as ${progressDisplay}. Activate to show as ${progressDisplay === "fraction" ? "percent" : "fraction"}.`}
+                          className="progress-tracker"
+                          onClick={toggleProgressDisplay}
+                          title={`Click to show progress as ${progressDisplay === "fraction" ? "percent" : "fraction"}`}
+                          type="button"
+                        >
+                          {progressDisplay === "fraction"
+                            ? `${ratedCount} / ${items.length}`
+                            : `${Math.round((ratedCount / items.length) * 100)}%`}
+                        </button>
                       )}
                     </div>
 

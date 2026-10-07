@@ -2,10 +2,29 @@ import { ratingOptions } from "./ratings.ts";
 import type { ImportedResults } from "./importResults.ts";
 
 const STORAGE_KEY = "kinkr:v1";
+const PROGRESS_DISPLAY_KEY = "kinkr:progress-display:v1";
 const KEY_PATTERN = /^(base|custom):\d+$/;
 const LEVELS: unknown[] = ratingOptions.map((option) => option.value);
 
 export type Progress = Omit<ImportedResults, "skipped">;
+export type ProgressDisplay = "fraction" | "percent";
+
+export function loadProgressDisplay(): ProgressDisplay {
+  try {
+    const display = localStorage.getItem(PROGRESS_DISPLAY_KEY);
+    return display === "percent" ? "percent" : "fraction";
+  } catch {
+    return "fraction";
+  }
+}
+
+export function saveProgressDisplay(display: ProgressDisplay) {
+  try {
+    localStorage.setItem(PROGRESS_DISPLAY_KEY, display);
+  } catch {
+    // Storage can be unavailable or full; the app still works without it.
+  }
+}
 
 export function saveProgress(progress: Progress) {
   try {

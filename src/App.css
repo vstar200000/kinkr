@@ -71,6 +71,25 @@
   padding: 0.35rem 0.65rem;
 }
 
+.progress-tracker {
+  background: none;
+  border: 0;
+  border-radius: 0.25rem;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+}
+
+.progress-tracker:hover {
+  text-decoration: underline;
+}
+
+.progress-tracker:focus-visible {
+  box-shadow: 0 0 0 0.2rem rgb(161 44 104 / 25%);
+  outline: 0;
+}
+
 .item-card {
   background: #fff;
   border: 1px solid #eceaf0;
