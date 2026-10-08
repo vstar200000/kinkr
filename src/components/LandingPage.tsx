@@ -21,7 +21,7 @@ function LandingPage({
   onDiscard,
 }: LandingPageProps) {
   const [listName, setListName] = useState("");
-  const [listVersion, setListVersion] = useState<ListVersion>("v2");
+  const [listVersion, setListVersion] = useState<ListVersion>("v3");
   const [includeExtended, setIncludeExtended] = useState(false);
   const [importFile, setImportFile] = useState<File | null>(null);
   const [importError, setImportError] = useState("");
@@ -31,7 +31,7 @@ function LandingPage({
     onStart(
       listName.trim(),
       listVersion,
-      listVersion === "v2" && includeExtended,
+      listVersion === "v3" && includeExtended,
     );
   }
 
@@ -115,7 +115,7 @@ function LandingPage({
             type="text"
             value={listName}
           />
-          {listVersion === "v2" && (
+          {(listVersion === "v2" || listVersion === "v3") && (
             <div className="form-check mb-3">
               <input
                 checked={includeExtended}
