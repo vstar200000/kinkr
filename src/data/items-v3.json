@@ -41,7 +41,8 @@
 			},
 			{
 				"name": "Ear play",
-				"description": "Stimulation of the ears for sexual pleasure."
+				"description": "Stimulation of the ears for sexual pleasure.",
+				"extended": true
 			},
 			{
 				"name": "Edging",
@@ -101,15 +102,22 @@
 			},
 			{
 				"name": "Ice Play",
-				"description": "Using ice or cold objects for sexual stimulation."
+				"description": "Using ice or cold objects for sexual stimulation.",
+				"extended": true
+			},
+			{
+				"name": "Incest",
+				"description": "A taboo relationship between close family members."
 			},
 			{
 				"name": "Kabeshiri",
-				"description": "A specific type of sexual play involving being bound in or against walls or surfaces."
+				"description": "A specific type of sexual play involving being bound in or against walls or surfaces.",
+				"extended": true
 			},
 			{
 				"name": "Knife Play",
-				"description": "Play involving objects associated with danger, often used in a controlled way to create a sense of risk or danger while remaining safe."
+				"description": "Play involving objects associated with danger, often used in a controlled way to create a sense of risk or danger while remaining safe.",
+				"extended": true
 			},
 			{
 				"name": "Magic (Influence)",
