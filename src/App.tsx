@@ -419,8 +419,13 @@ function Checklist({
             id="top"
             onClick={() => setIsNavOpen((open) => !open)}
             type="button"
+            aria-label="Kinkr menu"
           >
-            kinkr<span className="brand-period">.</span>
+            <img
+              alt=""
+              className="brand-logo"
+              src={`${import.meta.env.BASE_URL}logos/oasis_kinks_logo.png`}
+            />
           </button>
           <h1 className="list-name h5 mb-0">
             {isEditingListName ? (

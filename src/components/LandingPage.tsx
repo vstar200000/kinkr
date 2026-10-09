@@ -56,8 +56,12 @@ function LandingPage({
   return (
     <main className="app-shell landing d-flex align-items-center">
       <div className="container py-5" style={{ maxWidth: "32rem" }}>
-        <div className="brand text-center mb-2">
-          kinkr<span className="brand-period">.</span>
+        <div className="text-center mb-2">
+          <img
+            alt="Kinkr"
+            className="brand-logo brand-logo-large"
+            src={`${import.meta.env.BASE_URL}logos/oasis_kinks_logo.png`}
+          />
         </div>
         <p className="text-center text-secondary mb-4">
           Work through a checklist and rate each item.
