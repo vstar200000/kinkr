@@ -27,6 +27,21 @@
   padding: 0.65rem 1.1rem;
 }
 
+.export-dropdown-toggle {
+  border-radius: 0 999px 999px 0;
+}
+
+.dropdown-menu {
+  border-radius: 0.8rem;
+  box-shadow: 0 0.5rem 1rem rgb(0 0 0 / 20%);
+  margin-top: 0.5rem;
+  min-width: 12rem;
+  padding: 0.5rem 0;
+  z-index: 1000;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
 .list-name-button {
   background: none;
   border: 0;

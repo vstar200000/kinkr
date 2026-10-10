@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import "./App.css";
 import Item from "./components/item.tsx";
 import LandingPage from "./components/LandingPage.tsx";
@@ -189,6 +189,9 @@ function Checklist({
       : "",
   );
   const [isNavOpen, setIsNavOpen] = useState(false);
+  const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
+  const exportMenuRef = useRef<HTMLDivElement>(null);
+  const exportMenuButtonRef = useRef<HTMLButtonElement>(null);
   const [progressDisplay, setProgressDisplay] = useState(loadProgressDisplay);
 
   const items = useMemo(
@@ -213,6 +216,31 @@ function Checklist({
     customItems,
     nextCustomId,
   ]);
+
+  useEffect(() => {
+    if (!isExportMenuOpen) return;
+
+    function handlePointerDown(event: PointerEvent) {
+      if (!exportMenuRef.current?.contains(event.target as Node)) {
+        setIsExportMenuOpen(false);
+      }
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsExportMenuOpen(false);
+        exportMenuButtonRef.current?.focus();
+      }
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isExportMenuOpen]);
+
   const getAnswers = (key: string) => answers[key] ?? emptyAnswers;
 
   const activeItem = items[activeItemIndex];
@@ -512,20 +540,42 @@ function Checklist({
             >
               Export PNG
             </button>
-            <button
-              className="btn btn-outline-dark export-button"
-              onClick={exportResults}
-              type="button"
-            >
-              Export JSON
-            </button>
-            <button
-              className="btn btn-outline-dark export-button"
-              onClick={exportToClipboard}
-              type="button"
-            >
-              Export to Clipboard
-            </button>
+            <div className="dropdown" ref={exportMenuRef}>
+              <button
+                aria-label="More export options"
+                aria-controls="export-menu"
+                aria-expanded={isExportMenuOpen}
+                className="btn btn-outline-dark dropdown-toggle export-button export-dropdown-toggle"
+                onClick={() => setIsExportMenuOpen((open) => !open)}
+                ref={exportMenuButtonRef}
+                type="button"
+              />
+              <div
+                className={`dropdown-menu border border-dark dropdown-menu-end${isExportMenuOpen ? " show" : ""}`}
+                id="export-menu"
+              >
+                <button
+                  className="dropdown-item"
+                  onClick={() => {
+                    setIsExportMenuOpen(false);
+                    exportResults();
+                  }}
+                  type="button"
+                >
+                  Export JSON
+                </button>
+                <button
+                  className="dropdown-item"
+                  onClick={() => {
+                    setIsExportMenuOpen(false);
+                    exportToClipboard();
+                  }}
+                  type="button"
+                >
+                  Export to Clipboard
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </header>
