@@ -90,7 +90,7 @@ export function renderResultsCanvas(
   const COLUMN_GAP = 48;
   const GROUP_HEAD_H = 56;
   const GROUP_GAP = 16;
-  const title = listName || "kinkr results";
+  const title = listName || "Oasis Kinks results";
   const titleWidth = textWidth(`700 30px ${FONT}`, title);
 
   const blocks = groups.map((group) => ({
@@ -213,7 +213,7 @@ export function renderResultsCanvas(
   if (listName) {
     ctx.fillStyle = "#6b6775";
     ctx.font = `14px ${FONT}`;
-    ctx.fillText("kinkr results", PAD, PAD + 38);
+    ctx.fillText("Oasis Kinks results", PAD, PAD + 38);
   }
 
   // Legend, top right, wrapping

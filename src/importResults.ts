@@ -63,7 +63,7 @@ export function parseResults(
     data.formatVersion !== 3 ||
     !Array.isArray(data.categories)
   ) {
-    throw new Error("That file is not a kinkr results export.");
+    throw new Error("That file is not a Oasis Kinks results export.");
   }
 
   const includeExtended = data.includeExtended === true;

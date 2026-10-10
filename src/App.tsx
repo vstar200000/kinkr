@@ -4,8 +4,8 @@ import Item from "./components/item.tsx";
 import LandingPage from "./components/LandingPage.tsx";
 import NavMenu from "./components/navMenu.tsx";
 import RatingIcon from "./components/RatingIcon.tsx";
-import itemsData from "./data/items.json";
 import itemsV3Data from "./data/items-v3.json";
+import itemsData from "./data/items.json";
 import { downloadCanvasPng, renderResultsCanvas } from "./exportImage.ts";
 import {
   parseResults,
@@ -205,7 +205,14 @@ function Checklist({
       customItems,
       nextCustomId,
     });
-  }, [listName, listVersion, includeExtended, answers, customItems, nextCustomId]);
+  }, [
+    listName,
+    listVersion,
+    includeExtended,
+    answers,
+    customItems,
+    nextCustomId,
+  ]);
   const getAnswers = (key: string) => answers[key] ?? emptyAnswers;
 
   const activeItem = items[activeItemIndex];
@@ -342,7 +349,7 @@ function Checklist({
         ratingOptions,
         listName,
       );
-      await downloadCanvasPng(canvas, `kinkr-results-${date}.png`);
+      await downloadCanvasPng(canvas, `oasis-kinks-results-${date}.png`);
       setExportMessage("Your PNG results have been downloaded.");
     } catch {
       setExportMessage("Sorry, the PNG could not be created.");
@@ -400,7 +407,7 @@ function Checklist({
     const date = new Date().toISOString().slice(0, 10);
 
     downloadLink.href = downloadUrl;
-    downloadLink.download = `kinkr-results-${date}.json`;
+    downloadLink.download = `oasis-kinks-results-${date}.json`;
     document.body.append(downloadLink);
     downloadLink.click();
     downloadLink.remove();
@@ -419,7 +426,7 @@ function Checklist({
             id="top"
             onClick={() => setIsNavOpen((open) => !open)}
             type="button"
-            aria-label="Kinkr menu"
+            aria-label="Oasis Kinks menu"
           >
             <img
               alt=""

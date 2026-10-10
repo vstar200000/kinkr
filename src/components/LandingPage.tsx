@@ -58,7 +58,7 @@ function LandingPage({
       <div className="container py-5" style={{ maxWidth: "32rem" }}>
         <div className="text-center mb-2">
           <img
-            alt="Kinkr"
+            alt="Oasis Kinks"
             className="brand-logo brand-logo-large"
             src={`${import.meta.env.BASE_URL}logos/oasis_kinks_logo.png`}
           />
