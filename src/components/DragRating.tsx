@@ -153,6 +153,7 @@ function DragRating({ roles, onRate, renderCard }: DragRatingProps) {
 
   return (
     <DndContext
+      autoScroll={false}
       onDragCancel={() => setDrag(null)}
       onDragEnd={handleEnd}
       onDragMove={handleMove}

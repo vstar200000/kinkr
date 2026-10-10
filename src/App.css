@@ -471,6 +471,12 @@
   flex: 1;
   min-width: 0;
   overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+
+/* Hidden (not clip) keeps the scroll position while the drag overflows. */
+.app-body > .rating-workspace:has(.drag-stage.is-dragging) {
+  overflow: hidden;
 }
 
 .nav-menu {
