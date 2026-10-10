@@ -95,21 +95,21 @@ Each item has a `name`, its optional `description` and `image`, and a `rating` o
 
 ## TODO
 
-- [✓] Add % complete display.
-- [✓] Implement option to rename a list.
-- [✓] Don't default highlight "Ask Me". Only set as default if the user skips.
-- [ ] Fill out the descriptions for every item, even on the extended list.
-- [✓] Implement an "all done!" page after every item is answered (keep the navigation visible)
+- [x] Add % complete display.
+- [x] Implement option to rename a list.
+- [x] Don't default highlight "Ask Me". Only set as default if the user skips.
+- [x] Fill out the descriptions for every item, even on the extended list.
+- [x] Implement an "all done!" page after every item is answered (keep the navigation visible)
 - [ ] Build unit and integration tests.
-- [✓] The page height should be limited to the view height.
-- [ ] "Multiple x partners" items need to be reworked. The don't make sense being self-partner.
-- [ ] Items that don't make sense to be actor-subject:
+- [x] The page height should be limited to the view height.
+- [x] "Multiple x partners" items need to be reworked. The don't make sense being self-partner.
+- [x] Items that don't make sense to be actor-subject:
       "Condoms", "Docking", "Frotting", "Mutual Masturbation", "Smoking", "Socks/Stockings", "Tribadism/Scissoring", "Underwear"
-- [ ] Items to be removed due to redundancy:
+- [x] Items to be removed due to redundancy:
       "Leather" from Particular Actions/Elements
-- [ ] Clarify "Cum Placement" category.
-- [ ] Split "Primal" into "Hunter" and "Prey".
-- [ ] Consider "Dynamics" category.
+- [x] Clarify "Cum Placement" category.
+- [x] Split "Primal" into "Hunter" and "Prey".
+- [x] Consider "Dynamics" category.
 
 ## Validate
 
