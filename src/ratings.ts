@@ -52,3 +52,28 @@ export const ratingOptions = [
 ] as const;
 
 export type RatingOption = (typeof ratingOptions)[number];
+
+// Angles are in degrees, 0 = up, increasing clockwise. Each sector spans 36°;
+// the downward 108-252° range is intentionally unassigned.
+export const dragSectors: ReadonlyArray<{ value: number; start: number }> = [
+  { value: 2, start: 0 },
+  { value: 3, start: 36 },
+  { value: 4, start: 72 },
+  { value: -1, start: 252 },
+  { value: 0, start: 288 },
+  { value: 1, start: 324 },
+];
+
+export const DRAG_SECTOR_SIZE = 36;
+
+export function getDragAngle(dx: number, dy: number) {
+  const angle = (Math.atan2(dx, -dy) * 180) / Math.PI;
+  return (angle + 360) % 360;
+}
+
+export function getRatingForAngle(angle: number) {
+  const sector = dragSectors.find(
+    ({ start }) => angle >= start && angle < start + DRAG_SECTOR_SIZE,
+  );
+  return ratingOptions.find((option) => option.value === sector?.value);
+}
