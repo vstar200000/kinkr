@@ -356,8 +356,8 @@ function Checklist({
     }
   }
 
-  function exportResults() {
-    const exportData = {
+  function createJSONExportData() {
+    return {
       formatVersion: 3,
       ...(listName && { listName }),
       ...(includeExtended && { includeExtended }),
@@ -399,6 +399,10 @@ function Checklist({
           };
         }),
     };
+  }
+
+  function exportResults() {
+    const exportData = createJSONExportData();
     const file = new Blob([JSON.stringify(exportData, null, 2)], {
       type: "application/json",
     });
@@ -413,6 +417,22 @@ function Checklist({
     downloadLink.remove();
     URL.revokeObjectURL(downloadUrl);
     setExportMessage("Your JSON results have been downloaded.");
+  }
+
+  function exportToClipboard() {
+    const exportData = createJSONExportData();
+    navigator.clipboard
+      .writeText(JSON.stringify(exportData, null, 2))
+      .then(() =>
+        setExportMessage(
+          "Your JSON results have been copied to the clipboard.",
+        ),
+      )
+      .catch(() =>
+        setExportMessage(
+          "Sorry, the JSON could not be copied to the clipboard.",
+        ),
+      );
   }
 
   return (
@@ -498,6 +518,13 @@ function Checklist({
               type="button"
             >
               Export JSON
+            </button>
+            <button
+              className="btn btn-outline-dark export-button"
+              onClick={exportToClipboard}
+              type="button"
+            >
+              Export to Clipboard
             </button>
           </div>
         </div>
