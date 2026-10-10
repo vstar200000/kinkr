@@ -134,11 +134,130 @@
 }
 
 .item-card {
-  background: #fff;
+  background: color-mix(
+    in srgb,
+    var(--drag-tint, #fff) var(--drag-tint-amount, 0%),
+    #fff
+  );
   border: 1px solid #eceaf0;
   border-radius: 1.25rem;
   flex: 1 1 auto;
   overflow: hidden;
+}
+
+.drag-stage {
+  display: grid;
+  flex: 1 1 auto;
+  position: relative;
+}
+
+.drag-stage > * {
+  grid-area: 1 / 1;
+}
+
+.drag-card {
+  cursor: grab;
+  display: flex;
+  position: relative;
+  touch-action: none;
+  user-select: none;
+}
+
+.drag-card .item-card {
+  width: 100%;
+}
+
+.drag-card.is-dragging {
+  cursor: grabbing;
+  z-index: 3;
+}
+
+.drag-card-left {
+  clip-path: inset(-100vmax 50% -100vmax -100vmax);
+}
+
+.drag-card-right {
+  clip-path: inset(-100vmax -100vmax -100vmax 50%);
+}
+
+.drag-role-label {
+  background: rgb(255 255 255 / 85%);
+  border-radius: 999px;
+  bottom: 0.5rem;
+  color: #686572;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.1rem 0.6rem;
+  position: absolute;
+}
+
+.drag-card-left .drag-role-label {
+  left: 25%;
+  transform: translateX(-50%);
+}
+
+.drag-card-right .drag-role-label {
+  left: 75%;
+  transform: translateX(-50%);
+}
+
+.drag-hints {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.drag-hint {
+  position: absolute;
+  transform: rotate(var(--angle)) translateY(calc(-1 * min(9rem, 36vw)));
+}
+
+.drag-hint-inner {
+  align-items: center;
+  color: var(--hint-color);
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  opacity: 0;
+  transform: rotate(calc(-1 * var(--angle)));
+}
+
+.drag-hint-arrow {
+  display: inline-block;
+  filter: drop-shadow(0 0 2px #fff) drop-shadow(0 0 2px #fff);
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1;
+  transform: rotate(var(--angle));
+}
+
+.drag-hint-label {
+  background: rgb(255 255 255 / 90%);
+  border: 1px solid currentcolor;
+  border-radius: 999px;
+  color: #24212b;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0 0.5rem;
+  white-space: nowrap;
+}
+
+.drag-stage.is-dragging .drag-hint-inner {
+  animation: drag-hint-in 0.4s ease 0.6s forwards;
+}
+
+@keyframes drag-hint-in {
+  to {
+    opacity: 0.85;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drag-hint-inner {
+    animation-duration: 0.01s;
+  }
 }
 
 .item-card .card-body {

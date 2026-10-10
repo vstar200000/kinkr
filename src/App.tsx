@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import "./App.css";
 import Item from "./components/item.tsx";
+import DragRating from "./components/DragRating.tsx";
 import LandingPage from "./components/LandingPage.tsx";
 import NavMenu from "./components/navMenu.tsx";
 import RatingIcon from "./components/RatingIcon.tsx";
@@ -685,18 +686,32 @@ function Checklist({
                       )}
                     </div>
 
-                    <Item
+                    <DragRating
                       key={activeItem.key}
-                      autoFocus={justAddedKey === activeItem.key}
-                      description={activeItem.description}
-                      name={activeItem.name}
-                      onNameChange={
-                        activeItem.custom ? handleRenameItem : undefined
+                      onRate={(role, value) =>
+                        handleAnswerClick(role as Role, value as AnswerLevel)
                       }
-                      onRemove={
-                        activeItem.custom ? handleRemoveItem : undefined
-                      }
-                      rawName={activeItem.rawName}
+                      renderCard={(editable) => (
+                        <Item
+                          autoFocus={
+                            editable && justAddedKey === activeItem.key
+                          }
+                          description={activeItem.description}
+                          name={activeItem.name}
+                          onNameChange={
+                            editable && activeItem.custom
+                              ? handleRenameItem
+                              : undefined
+                          }
+                          onRemove={
+                            editable && activeItem.custom
+                              ? handleRemoveItem
+                              : undefined
+                          }
+                          rawName={activeItem.rawName}
+                        />
+                      )}
+                      roles={activeRoles}
                     />
 
                     <div className="rating-controls mt-auto">
